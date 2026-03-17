@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<title>Login</title>
+
+<link rel="stylesheet" href="/css/styles.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+    <%- include("partials/navbar") %>
+
+<div class="auth-page">
+
+<div class="auth-card">
+
+<h2>Login</h2>
+
+<form action="/login" method="POST">
+
+<input
+type="email"
+name="email"
+placeholder="Email"
+class="auth-input"
+required
+>
+
+<input
+type="password"
+name="password"
+placeholder="Password"
+class="auth-input"
+required
+>
+
+<button class="auth-btn">
+Login
+</button>
+
+</form>
+
+<div class="auth-link">
+
+Don't have an account?
+
+<a href="/register">Register</a>
+
+</div>
+
+</div>
+
+</div>
+
+
+</body>
+</html>

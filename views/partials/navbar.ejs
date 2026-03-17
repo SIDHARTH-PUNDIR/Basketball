@@ -1,0 +1,26 @@
+<header class="main-navbar">
+
+<nav class="nav-left">
+<a href="/">Home</a>
+<a href="#">Games</a>
+<a href="#">Clubs</a>
+<a href="#">Stats</a>
+</nav>
+
+<div class="logo">Court<span>X</span></div>
+
+<nav class="nav-right">
+<a href="#">Standings</a>
+<a href="#">Playoffs</a>
+<a href="#">News</a>
+<% if(user){ %>
+      <a href="/dashboard">Dashboard</a>
+      <a href="/logout" class="signin">Logout</a>
+  <% } else { %>
+      <a href="/login" class="signin">Sign In</a>
+  <% } %>
+</nav>
+
+</header>
+
+
