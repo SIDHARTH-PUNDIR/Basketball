@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Live Match</title>
+  <link rel="stylesheet" href="/css/live.css">
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
+</head>
+
+<body>
+<%- include("../partials/navbar") %>
+
+<div class="live-page">
+
+  <!-- SCOREBOARD HERO -->
+  <div class="scoreboard-hero">
+    <div class="sb-noise"></div>
+    <div class="sb-inner">
+
+      <div class="sb-team sb-team--a">
+        <div class="sb-team-abbr"><%= match.teama %></div>
+        <div class="sb-team-label">Home</div>
+      </div>
+
+      <div class="sb-center">
+        <div class="sb-scores">
+          <span class="sb-score"><%= match.scorea %></span>
+          <span class="sb-dash">—</span>
+          <span class="sb-score"><%= match.scoreb %></span>
+        </div>
+        <div class="sb-meta">
+          <span class="sb-status <%= match.status === 'LIVE' ? 'is-live' : '' %>">
+            <% if (match.status === 'LIVE') { %><span class="live-dot"></span><% } %>
+            <%= match.status %>
+          </span>
+          <span class="sb-divider">·</span>
+          <span class="sb-date">
+            <%= new Date(match.match_date).toLocaleDateString('en-IN', {
+              weekday: 'short', day: 'numeric', month: 'short'
+            }) %>
+          </span>
+        </div>
+      </div>
+
+      <div class="sb-team sb-team--b">
+        <div class="sb-team-abbr"><%= match.teamb %></div>
+        <div class="sb-team-label">Away</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="live-body">
+
+    <!-- LEFT: COURT -->
+    <div class="court-panel">
+      <div class="panel-header">
+        <span class="panel-label">Court Positions</span>
+        <% if (team) { %>
+          <span class="panel-tag"><%= team %></span>
+        <% } %>
+      </div>
+
+      <div class="court-wrap">
+        <svg class="court-svg" viewBox="0 0 800 430" xmlns="http://www.w3.org/2000/svg">
+
+          <!-- COURT BACKGROUND -->
+          <rect width="800" height="430" rx="14" fill="#0d1525"/>
+          <rect x="18" y="18" width="764" height="394" rx="8"
+            fill="none" stroke="#1e3a5f" stroke-width="2"/>
+          <line x1="400" y1="18" x2="400" y2="412" stroke="#1e3a5f" stroke-width="2"/>
+          <circle cx="400" cy="215" r="60" fill="none" stroke="#1e3a5f" stroke-width="2"/>
+          <circle cx="400" cy="215" r="5" fill="#1e3a5f"/>
+
+          <!-- LEFT SIDE (HOME) -->
+          <rect x="18" y="137" width="170" height="156"
+            fill="rgba(255,122,24,0.05)" stroke="#1e3a5f" stroke-width="2"/>
+          <path d="M 188 137 A 60 60 0 0 1 188 293"
+            fill="none" stroke="#1e3a5f" stroke-width="2"/>
+          <path d="M 188 137 A 60 60 0 0 0 188 293"
+            fill="none" stroke="#1e3a5f" stroke-width="2" stroke-dasharray="6,5"/>
+          <path d="M 55 185 A 40 40 0 0 1 55 245"
+            fill="none" stroke="#1e3a5f" stroke-width="1.5" stroke-dasharray="4,4"/>
+          <line x1="18" y1="90"  x2="68" y2="90"  stroke="#1e3a5f" stroke-width="2"/>
+          <line x1="18" y1="340" x2="68" y2="340" stroke="#1e3a5f" stroke-width="2"/>
+          <path d="M 68 90 Q 310 215 68 340" fill="none" stroke="#1e3a5f" stroke-width="2"/>
+          <line x1="28" y1="193" x2="28" y2="237" stroke="#ff7a18" stroke-width="5" stroke-linecap="round"/>
+          <circle cx="62" cy="215" r="11" fill="none" stroke="#ff7a18" stroke-width="2.5"/>
+          <circle cx="62" cy="215" r="15" fill="rgba(255,122,24,0.08)"/>
+
+          <!-- RIGHT SIDE (AWAY) -->
+          <rect x="612" y="137" width="170" height="156"
+            fill="rgba(100,150,255,0.05)" stroke="#1e3a5f" stroke-width="2"/>
+          <path d="M 612 137 A 60 60 0 0 0 612 293"
+            fill="none" stroke="#1e3a5f" stroke-width="2"/>
+          <path d="M 612 137 A 60 60 0 0 1 612 293"
+            fill="none" stroke="#1e3a5f" stroke-width="2" stroke-dasharray="6,5"/>
+          <path d="M 745 185 A 40 40 0 0 0 745 245"
+            fill="none" stroke="#1e3a5f" stroke-width="1.5" stroke-dasharray="4,4"/>
+          <line x1="782" y1="90"  x2="732" y2="90"  stroke="#1e3a5f" stroke-width="2"/>
+          <line x1="782" y1="340" x2="732" y2="340" stroke="#1e3a5f" stroke-width="2"/>
+          <path d="M 732 90 Q 490 215 732 340" fill="none" stroke="#1e3a5f" stroke-width="2"/>
+          <line x1="772" y1="193" x2="772" y2="237" stroke="#6496ff" stroke-width="5" stroke-linecap="round"/>
+          <circle cx="738" cy="215" r="11" fill="none" stroke="#6496ff" stroke-width="2.5"/>
+          <circle cx="738" cy="215" r="15" fill="rgba(100,150,255,0.08)"/>
+
+          <!-- TEAM LABELS -->
+          <text x="100" y="42" text-anchor="middle"
+            font-family="Barlow Condensed, sans-serif"
+            font-size="11" font-weight="700" letter-spacing="3"
+            fill="#ff7a18" opacity="0.6">HOME</text>
+          <text x="700" y="42" text-anchor="middle"
+            font-family="Barlow Condensed, sans-serif"
+            font-size="11" font-weight="700" letter-spacing="3"
+            fill="#6496ff" opacity="0.6">AWAY</text>
+
+          <%
+            const posMap = {
+              PG: { x: 240, y: 215 },
+              SG: { x: 175, y: 118 },
+              SF: { x: 175, y: 312 },
+              PF: { x: 108, y: 158 },
+              C:  { x: 105, y: 215 }
+            };
+          %>
+
+          <% if (players && players.length > 0) { %>
+
+            <!-- ALL CLIP PATHS FIRST -->
+            <defs>
+              <% players.forEach(player => { %>
+                <% const pos = posMap[player.position] || posMap['PG']; %>
+                <clipPath id="clip-<%= player.id %>">
+                  <circle cx="<%= pos.x %>" cy="<%= pos.y %>" r="22"/>
+                </clipPath>
+              <% }) %>
+            </defs>
+
+            <% players.forEach(player => { %>
+              <% const pos = posMap[player.position] || posMap['PG']; %>
+
+              <!-- Glow ring -->
+              <circle cx="<%= pos.x %>" cy="<%= pos.y %>" r="28"
+                fill="rgba(255,122,24,0.07)"
+                stroke="rgba(255,122,24,0.2)" stroke-width="1"/>
+
+              <!-- Orange border -->
+              <circle cx="<%= pos.x %>" cy="<%= pos.y %>" r="24"
+                fill="none" stroke="#ff7a18" stroke-width="2.5"/>
+
+              <!-- Player photo from DB -->
+              <image
+                href="http://localhost:3000<%= player.image %>"
+                x="<%= pos.x - 22 %>" y="<%= pos.y - 22 %>"
+                width="44" height="44"
+                clip-path="url(#clip-<%= player.id %>)"
+                preserveAspectRatio="xMidYMid slice"/>
+
+              <!-- Position badge -->
+              <rect x="<%= pos.x - 16 %>" y="<%= pos.y + 26 %>"
+                width="32" height="15" rx="4" fill="#ff7a18"/>
+              <text x="<%= pos.x %>" y="<%= pos.y + 37 %>"
+                text-anchor="middle"
+                font-family="Barlow Condensed, sans-serif"
+                font-size="9" font-weight="700" fill="white">
+                <%= player.position %>
+              </text>
+
+              <!-- Player name -->
+              <text x="<%= pos.x %>" y="<%= pos.y + 54 %>"
+                text-anchor="middle"
+                font-family="Barlow Condensed, sans-serif"
+                font-size="11" font-weight="600" fill="#cbd5e1">
+                <%= player.name.split(' ')[0] %>
+              </text>
+
+            <% }) %>
+
+       <% } else { %>
+  <text x="200" y="220" text-anchor="middle"
+    font-family="Barlow Condensed, sans-serif"
+    font-size="13" fill="#2a3a55">
+    No players added for this team yet
+  </text>
+<% } %>
+
+        </svg>
+      </div>
+    </div>
+
+    <!-- RIGHT: EVENTS + ROSTER -->
+    <div class="events-panel">
+
+      <div class="panel-header">
+        <span class="panel-label">Play-by-Play</span>
+        <% if (match.status === 'LIVE') { %>
+          <span class="panel-live-badge">● LIVE</span>
+        <% } %>
+      </div>
+
+      <div class="events-feed">
+        <div class="event-item event--score">
+          <span class="event-time">02:14</span>
+          <span class="event-icon">🏀</span>
+          <span class="event-text">Rahul scored <strong>2 points</strong></span>
+        </div>
+        <div class="event-item event--foul">
+          <span class="event-time">01:59</span>
+          <span class="event-icon">⚠️</span>
+          <span class="event-text">Aman committed a <strong>foul</strong></span>
+        </div>
+      </div>
+
+    
+      <!-- ROSTER -->
+<div class="roster-panel">
+  <div class="panel-header">
+    <span class="panel-label">Roster</span>
+    <span class="panel-tag"><%= match.teama %></span>
+  </div>
+  <div class="roster-list">
+    <% if (players.length === 0) { %>
+      <div class="empty-state">No players found for this team.</div>
+    <% } else { %>
+      <% players.forEach((player, i) => { %>
+       <div class="roster-card" style="animation-delay: <%= i * 0.06 %>s">
+          <div class="roster-num">#<%= i + 1 %></div>
+          <img class="roster-img" src="<%= player.image %>" alt="<%= player.name %>" />
+          <div class="roster-info">
+            <div class="roster-name"><%= player.name %></div>
+            <div class="roster-pos"><%= player.position || 'N/A' %></div>
+          </div>
+          <div class="roster-role"><%= player.role || '' %></div>
+        </div>
+      <% }) %>
+    <% } %>
+  </div>
+</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

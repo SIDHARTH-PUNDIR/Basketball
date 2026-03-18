@@ -1,0 +1,35 @@
+<div class="scoreboard-bar">
+  <div class="scoreboard-container">
+
+    <% matches.forEach(function(match) { %>
+
+    <a href="/live/<%= match.id %>" class="match-card">
+
+      <div class="match-date">
+        <%= new Date(match.match_date).toLocaleDateString('en-IN', {
+          weekday: 'short',
+          day: 'numeric',
+          month: 'short'
+        }) %>
+      </div>
+
+      <div class="team-row">
+        <span><%= match.teama %></span>
+        <span class="team-score"><%= match.scorea %></span>
+      </div>
+
+      <div class="team-row">
+        <span><%= match.teamb %></span>
+        <span class="team-score"><%= match.scoreb %></span>
+      </div>
+
+      <div class="match-status <%= match.status === 'LIVE' ? 'live' : '' %>">
+        <%= match.status %>
+      </div>
+
+    </a>
+
+    <% }) %>
+
+  </div>
+</div>

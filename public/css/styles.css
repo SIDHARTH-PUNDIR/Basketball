@@ -108,27 +108,7 @@ body.HOME {
     width: max-content;
     min-width: 100%;
 }
-.main-navbar {
-    position: fixed;
-    top: 90px;        /* ← pushed down by scoreboard height */
-    left: 0;
-    width: 100%;
-    height: 70px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 40px;
-    background: rgba(10, 10, 20, 0.85);
-    backdrop-filter: blur(14px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
-    z-index: 2000;
-      transform: translateY(0);   /* initial */
-    transition: transform 0.35s ease;
-}
-.main-navbar.scrolled {
-    transform: translateY(-90px);  /* move UP smoothly */
-}
+
 /* ================= BODY OFFSET ================= */
 
 body.HOME {
@@ -145,10 +125,11 @@ body:not(.HOME) .main-navbar {
 /* MATCH CARD */
 
 .match-card {
+    
     width: 110px;
     height: 85px;
 
-    padding: 10px 14px;
+    padding: 5px 14px;
 
     border-radius: 13px;
 
@@ -158,16 +139,21 @@ body:not(.HOME) .main-navbar {
 
     backdrop-filter: blur(10px);
 
-    display: flex;
+    /*display: flex;*/
     flex-direction: column;
     justify-content: center;
 
     transition: all .25s ease;
+flex-shrink: 0;  
+     display: flex;          /* VERY IMPORTANT */
+  text-decoration: none;   /* remove underline */
+  color: inherit;  
 }
 
 .match-card:hover {
     transform: translateY(-3px);
-    background: rgba(255, 255, 255, 0.12);
+    background: #111827;
+  cursor: pointer;
 }
 
 /* DATE */
@@ -175,7 +161,7 @@ body:not(.HOME) .main-navbar {
 .match-date {
     font-size: 11px;
     color: #9aa0b4;
-    margin-bottom: 3px;
+    margin-bottom: 1px;
 }
 
 /* TEAM ROW */
@@ -206,6 +192,7 @@ body:not(.HOME) .main-navbar {
 .match-status {
     font-size: 11px;
     color: #9aa0b4;
+    margin-bottom: 1px;
 }
 
 .live {
@@ -247,6 +234,27 @@ body:not(.HOME) .main-navbar {
 } */
 
 /* NAV LINKS */
+.main-navbar {
+    position: fixed;
+    top: 90px;        /* ← pushed down by scoreboard height */
+    left: 0;
+    width: 100%;
+    height: 70px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 40px;
+    background: rgba(10, 10, 20, 0.85);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+    z-index: 2000;
+      transform: translateY(0);   /* initial */
+    transition: transform 0.35s ease;
+}
+.main-navbar.scrolled {
+    transform: translateY(-90px);  /* move UP smoothly */
+}
 
 .nav-left a,
 .nav-right a {
@@ -1124,14 +1132,28 @@ body:not(.HOME) .main-navbar {
 
 /* Register/Login page */
 
+body.auth-body .main-navbar {
+    top: 0 !important;
+}
+
+body.auth-body {
+    padding-top: 0 !important;
+}
 
 
 
-
-
+.auth-body {
+    margin: 0;
+    padding: 0;
+}
 
 .auth-page {
-    min-height: calc(100vh - 70px);
+    margin: 0 !important;
+    padding-top: 0 !important;
+}
+
+.auth-page {
+    min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1139,9 +1161,8 @@ body:not(.HOME) .main-navbar {
 }
 
 .auth-body .main-navbar {
-    position: relative;
+    position: relative !important;
 }
-
 .auth-page::before {
     content: "";
     position: absolute;

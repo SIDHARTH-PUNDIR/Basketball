@@ -21,67 +21,8 @@ rel="stylesheet"
 
 <body class="HOME">
 
-<!-- SCOREBOARD BAR -->
-
-<div class="scoreboard-bar">
-
-<div class="scoreboard-container">
-
-<div class="match-card">
-<div class="match-date">14th March</div>
-
-<div class="team-row">
-<span>LAL</span>
-<span class="team-score">101</span>
-</div>
-
-<div class="team-row">
-<span>BOS</span>
-<span class="team-score">98</span>
-</div>
-
-<div class="match-status live">LIVE</div>
-</div>
-
-
-<div class="match-card">
-<div class="match-date">Today</div>
-
-<div class="team-row">
-<span>GSW</span>
-<span class="team-score">67</span>
-</div>
-
-<div class="team-row">
-<span>PHX</span>
-<span class="team-score">64</span>
-</div>
-
-<div class="match-status">Q3</div>
-</div>
-
-
-<div class="match-card">
-<div class="match-date">Today</div>
-
-<div class="team-row">
-<span>CHI</span>
-<span class="team-score">89</span>
-</div>
-
-<div class="team-row">
-<span>MIA</span>
-<span class="team-score">93</span>
-</div>
-
-<div class="match-status">Final</div>
-</div>
-
-</div>
-
-</div>
-
-
+<!-- SCOREBOARD -->
+<%- include("../partials/scoreboard") %>
 
 <!-- NAVBAR -->
 <%- include("../partials/navbar") %>
@@ -105,7 +46,9 @@ and track your team's journey to the championship.
 <button onclick="location.href='/register'" class="register">
 Register
 </button>
-<button class="live">Live Score</button>
+<button onclick="location.href='/live'" class="live">
+  Live Score
+</button>
 </div>
 
 <img src="/assets/victor.png" alt="Graphic" class="vector-graphic" />
