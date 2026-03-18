@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title><%= tournament.name %></title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    body { background: #060810; color: #e8eaf0; font-family: 'Barlow', sans-serif; padding-top: 70px; }
+
+    .t-hero {
+      padding: 60px;
+      background: linear-gradient(135deg, #0e0f1e, #12141f);
+      border-bottom: 1px solid rgba(255,122,24,0.15);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .t-hero h1 {
+      font-family: 'Anton', sans-serif;
+      font-size: 48px;
+      letter-spacing: 2px;
+      color: white;
+    }
+
+    .t-hero-meta {
+      margin-top: 10px;
+      display: flex;
+      gap: 24px;
+    }
+
+    .t-hero-meta span {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #4a5068;
+    }
+
+    .t-hero-meta span strong { color: #ff7a18; }
+
+    .register-btn {
+      background: #ff7a18;
+      color: white;
+      border: none;
+      padding: 14px 30px;
+      border-radius: 10px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: 0.25s;
+      text-decoration: none;
+    }
+
+    .register-btn:hover {
+      background: #ff8f32;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(255,122,24,0.4);
+    }
+
+    .register-btn.disabled {
+      background: #1e2030;
+      color: #4a5068;
+      cursor: not-allowed;
+      border: 1px solid #2a2d3e;
+    }
+
+    .t-body {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 50px 40px;
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 30px;
+    }
+
+    .section-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #4a5068;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    /* FIXTURES */
+    .fixture-card {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      transition: 0.2s;
+    }
+
+    .fixture-card:hover {
+      background: rgba(255,122,24,0.05);
+      border-color: rgba(255,122,24,0.15);
+    }
+
+    .fixture-teams {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .fixture-score {
+      font-family: 'Anton', sans-serif;
+      font-size: 22px;
+      color: white;
+      letter-spacing: 2px;
+    }
+
+    .fixture-vs { color: #2a2d3e; font-size: 14px; }
+
+    .fixture-meta {
+      font-size: 12px;
+      color: #4a5068;
+      font-family: 'Barlow Condensed', sans-serif;
+      letter-spacing: 1px;
+      text-align: right;
+    }
+
+    .fixture-round {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      background: rgba(255,122,24,0.12);
+      color: #ff7a18;
+      border: 1px solid rgba(255,122,24,0.2);
+      margin-bottom: 4px;
+    }
+
+    .no-fixtures {
+      text-align: center;
+      padding: 40px;
+      color: #2a2d3e;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 14px;
+      letter-spacing: 2px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.04);
+      border-radius: 12px;
+    }
+
+    /* REGISTERED TEAMS */
+    .team-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.04);
+      border-radius: 10px;
+      margin-bottom: 8px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: #e8eaf0;
+    }
+
+    .team-num {
+      color: #2a2d3e;
+      font-size: 12px;
+      width: 20px;
+    }
+
+    .team-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #ff7a18;
+    }
+
+    .slots-left {
+      text-align: center;
+      margin-top: 16px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px;
+      letter-spacing: 2px;
+      color: #4a5068;
+    }
+
+    .slots-left strong { color: #ff7a18; }
+  </style>
+</head>
+<body>
+
+<%- include("../partials/navbar") %>
+
+<!-- HERO -->
+<div class="t-hero">
+  <div>
+    <h1><%= tournament.name.toUpperCase() %></h1>
+    <div class="t-hero-meta">
+      <span>📍 <strong><%= tournament.location %></strong></span>
+      <span>📅 <strong>
+        <%= new Date(tournament.start_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) %>
+        —
+        <%= new Date(tournament.end_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) %>
+      </strong></span>
+      <span>👥 <strong><%= teams.length %> / <%= tournament.max_teams %></strong> teams</span>
+    </div>
+  </div>
+
+  <% if (!user) { %>
+    <a href="/login" class="register-btn">Sign In to Register</a>
+  <% } else if (isRegistered) { %>
+    <span class="register-btn disabled">✓ Registered</span>
+  <% } else if (teams.length >= tournament.max_teams) { %>
+    <span class="register-btn disabled">Tournament Full</span>
+  <% } else { %>
+    <form action="/tournaments/<%= tournament.id %>/register" method="POST">
+      <button type="submit" class="register-btn">Register Team</button>
+    </form>
+  <% } %>
+</div>
+
+<!-- BODY -->
+<div class="t-body">
+
+  <!-- LEFT: FIXTURES -->
+  <div>
+    <div class="section-title">Fixtures</div>
+
+    <% if (matches.length === 0) { %>
+      <div class="no-fixtures">
+        FIXTURES WILL BE ANNOUNCED SOON
+      </div>
+    <% } else { %>
+      <% matches.forEach(match => { %>
+        <div class="fixture-card">
+          <div>
+            <div class="fixture-round"><%= match.round %></div>
+            <div class="fixture-teams">
+              <span><%= match.teama %></span>
+              <span class="fixture-vs">vs</span>
+              <span><%= match.teamb %></span>
+            </div>
+          </div>
+          <div>
+            <% if (match.status === 'FINAL' || match.status === 'LIVE') { %>
+              <div class="fixture-score"><%= match.scorea %> — <%= match.scoreb %></div>
+            <% } %>
+            <div class="fixture-meta">
+              <%= match.match_date ? new Date(match.match_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : 'TBD' %>
+              <br/>
+              <span style="color: <%= match.status === 'LIVE' ? '#ff4545' : '#4a5068' %>">
+                <%= match.status %>
+              </span>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    <% } %>
+  </div>
+
+  <!-- RIGHT: REGISTERED TEAMS -->
+  <div>
+    <div class="section-title">Registered Teams</div>
+
+    <% if (teams.length === 0) { %>
+      <div class="no-fixtures">NO TEAMS YET</div>
+    <% } else { %>
+      <% teams.forEach((t, i) => { %>
+        <div class="team-item">
+          <span class="team-num">#<%= i + 1 %></span>
+          <span class="team-dot"></span>
+          <%= t.team_name %>
+        </div>
+      <% }) %>
+    <% } %>
+
+    <div class="slots-left">
+      <strong><%= tournament.max_teams - teams.length %></strong> slots remaining
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

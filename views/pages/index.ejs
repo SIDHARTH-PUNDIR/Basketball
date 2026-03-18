@@ -73,7 +73,7 @@ Register
 
 <div class="tournaments-grid">
 
-<a href="#" class="tournament-card">
+<a href="/tournaments/1" class="tournament-card">
 <img src="/assets/tournaments/spring.png">
 <div class="tournament-info">
 <h3>Spring Cup</h3>
@@ -81,7 +81,7 @@ Register
 </div>
 </a>
 
-<a href="#" class="tournament-card">
+<a href="/tournaments/2" class="tournament-card">
 <img src="/assets/tournaments/summer.png">
 <div class="tournament-info">
 <h3>Summer League</h3>
@@ -89,7 +89,7 @@ Register
 </div>
 </a>
 
-<a href="#" class="tournament-card">
+<a href="/tournaments/3" class="tournament-card">
 <img src="/assets/tournaments/city.png">
 <div class="tournament-info">
 <h3>City Championship</h3>
@@ -97,7 +97,7 @@ Register
 </div>
 </a>
 
-<a href="#" class="tournament-card">
+<a href="/tournaments/4" class="tournament-card">
 <img src="/assets/tournaments/finals.png">
 <div class="tournament-info">
 <h3>Grand Finals</h3>
@@ -117,74 +117,24 @@ Register
 
 <section class="standings-section">
 
-<h2 class="standings-heading">SEASON CHAMPIONS 2026</h2>
+<h2 class="standings-heading" id="yearTitle">
+  SEASON CHAMPIONS 2025
+</h2>
 
-<div class="podium">
+<!-- YEAR SELECT -->
+<div class="year-selector">
+  <button onclick="changeYear(2025)">2025</button>
+  <button onclick="changeYear(2024)">2024</button>
+  <button onclick="changeYear(2023)">2023</button>
+</div>
 
-<div class="podium-card second">
+<div class="podium" id="podium">
 
-<img src="/assets/club/shadow.png" class="team-logo">
-
-<h3>SHADOW HOOPS</h3>
-
-<p class="position">Runner Up</p>
-
-<div class="medal silver">2</div>
+  <!-- content will be filled by JS -->
 
 </div>
 
-
-<div class="podium-card first">
-
-<img src="/assets/club/apex.png" class="team-logo">
-
-<h3>APEX GORILLAS</h3>
-
-<p class="position">Champion</p>
-
-<div class="medal gold">1</div>
-
-</div>
-
-
-<div class="podium-card third">
-
-<img src="/assets/club/viking.png" class="team-logo">
-
-<h3>VIKING REAVERS</h3>
-
-<p class="position">3rd Place</p>
-
-<div class="medal bronze">3</div>
-
-</div>
-
-</div>
-
-
-<div class="leader-stats">
-
-<div class="leader-card">
-
-<h4>🔥 Best Scorer</h4>
-
-<p>Alex Carter</p>
-
-<span>38 PPG</span>
-
-</div>
-
-<div class="leader-card">
-
-<h4>⚡ Top Scoring Team</h4>
-
-<p>Mist Club</p>
-
-<span>112 Avg Points</span>
-
-</div>
-
-</div>
+<div class="leader-stats" id="leaders"></div>
 
 </section>
 
@@ -304,6 +254,89 @@ observer.observe(el);
             navbar.classList.remove('scrolled');  // ← removes .scrolled from navbar
         }
     });
+
+
+
+
+
+
+const winnersData = {
+
+  2025: {
+    champion: { name: "APEX GORILLAS", logo: "/assets/club/apex.png" },
+    second: { name: "SHADOW HOOPS", logo: "/assets/club/shadow.png" },
+    third: { name: "VIKING REAVERS", logo: "/assets/club/viking.png" },
+    scorer: { name: "Alex Carter", stat: "38 PPG" },
+    team: { name: "Mist Club", stat: "112 Avg Points" }
+  },
+
+  2024: {
+    champion: { name: "SKY EAGLES", logo: "/assets/club/sky.png" },
+    second: { name: "APEX GORILLAS", logo: "/assets/club/apex.png" },
+    third: { name: "VIKING REAVERS", logo: "/assets/club/viking.png" },
+    scorer: { name: "John Blaze", stat: "35 PPG" },
+    team: { name: "Apex Gorillas", stat: "105 Avg Points" }
+  },
+
+  2023: {
+    champion: { name: "VIKING REAVERS", logo: "/assets/club/viking.png" },
+    second: { name: "SHADOW HOOPS", logo: "/assets/club/shadow.png" },
+    third: { name: "RHINO RAMPAGE", logo: "/assets/club/rhino.png" },
+    scorer: { name: "Ravi Singh", stat: "33 PPG" },
+    team: { name: "Shadow Hoops", stat: "101 Avg Points" }
+  }
+
+};
+
+function changeYear(year) {
+
+  const data = winnersData[year];
+
+  document.getElementById("yearTitle").innerText =
+    `SEASON CHAMPIONS ${year}`;
+
+  document.getElementById("podium").innerHTML = `
+    
+    <div class="podium-card second">
+      <img src="${data.second.logo}" class="team-logo">
+      <h3>${data.second.name}</h3>
+      <p class="position">Runner Up</p>
+      <div class="medal silver">2</div>
+    </div>
+
+    <div class="podium-card first">
+      <img src="${data.champion.logo}" class="team-logo">
+      <h3>${data.champion.name}</h3>
+      <p class="position">Champion</p>
+      <div class="medal gold">1</div>
+    </div>
+
+    <div class="podium-card third">
+      <img src="${data.third.logo}" class="team-logo">
+      <h3>${data.third.name}</h3>
+      <p class="position">3rd Place</p>
+      <div class="medal bronze">3</div>
+    </div>
+  `;
+
+  document.getElementById("leaders").innerHTML = `
+    <div class="leader-card">
+      <h4>🔥 Best Scorer</h4>
+      <p>${data.scorer.name}</p>
+      <span>${data.scorer.stat}</span>
+    </div>
+
+    <div class="leader-card">
+      <h4>⚡ Top Scoring Team</h4>
+      <p>${data.team.name}</p>
+      <span>${data.team.stat}</span>
+    </div>
+  `;
+}
+
+// 🔥 Load default year
+changeYear(2025);
+
 
 </script>
 

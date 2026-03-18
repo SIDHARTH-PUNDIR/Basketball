@@ -2,7 +2,9 @@
 
 <nav class="nav-left">
 <a href="/">Home</a>
-<a href="#">Games</a>
+<% if (user && user.is_admin) { %>
+  <a href="/admin">Admin</a>
+<% } %>
 <a href="#">Clubs</a>
 <a href="#">Stats</a>
 </nav>
@@ -11,8 +13,8 @@
 
 <nav class="nav-right">
 <a href="#">Standings</a>
-<a href="#">Playoffs</a>
-<a href="#">News</a>
+<a href="/tournaments">tournaments</a>
+<a href="/news">News</a>
 <% if(user){ %>
       <a href="/dashboard">Dashboard</a>
       <a href="/logout" class="signin">Logout</a>

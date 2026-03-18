@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Panel</title>
+
+  <style>
+    body {
+      background: #060810;
+      color: white;
+      font-family: sans-serif;
+      padding: 40px;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+
+    .status {
+      color: #00ffcc;
+      margin-bottom: 20px;
+    }
+
+    /* GRID */
+    .admin-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 20px;
+    }
+
+    /* CARD */
+    .card {
+      background: #111827;
+      padding: 25px;
+      border-radius: 14px;
+      border: 1px solid #1e2030;
+    }
+
+    h2 {
+      color: #ff7a18;
+      margin-bottom: 10px;
+    }
+
+    input, select {
+      background: #0d1325;
+      border: 1px solid #333;
+      color: white;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 10px;
+      width: 100%;
+    }
+
+    button {
+      background: #ff7a18;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 12px;
+      width: 100%;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background: #ff8f2f;
+    }
+
+    .score-display {
+      margin-top: 10px;
+      color: #aaa;
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <h1>⚙️ Admin Live Control Panel</h1>
+  <p class="status">🟢 Live System Active</p>
+
+  <div class="admin-grid">
+
+    <!-- SELECT MATCH -->
+    <div class="card">
+      <h2>Select Match</h2>
+
+      <select id="matchId">
+        <% matches.forEach(match => { %>
+          <option value="<%= match.id %>">
+            <%= match.teama %> vs <%= match.teamb %>
+          </option>
+        <% }) %>
+      </select>
+    </div>
+
+    <!-- UPDATE SCORE -->
+    <div class="card">
+      <h2>Update Score</h2>
+
+      <input id="scoreA" type="number" placeholder="Team A Score">
+      <input id="scoreB" type="number" placeholder="Team B Score">
+
+      <button onclick="updateScore()">Update Score</button>
+
+      <p id="currentScore" class="score-display">
+        Current Score: --
+      </p>
+    </div>
+
+    <!-- ADD EVENT -->
+    <div class="card">
+      <h2>Add Play-by-Play Event</h2>
+
+      <select id="evtMatch">
+        <% matches.forEach(match => { %>
+          <option value="<%= match.id %>">
+            <%= match.teama %> vs <%= match.teamb %>
+          </option>
+        <% }) %>
+      </select>
+
+      <input id="evtTime" placeholder="Time (e.g. 02:34)">
+      <input id="evtText" placeholder="Event description">
+
+      <select id="evtType">
+        <option value="score">🏀 Score</option>
+        <option value="foul">⚠️ Foul</option>
+        <option value="block">🛡️ Block</option>
+        <option value="timeout">⏱ Timeout</option>
+      </select>
+
+      <button onclick="addEvent()">Add Event</button>
+    </div>
+
+  </div>
+
+  <!-- SOCKET.IO -->
+  <script src="/socket.io/socket.io.js"></script>
+
+  <script>
+    const socket = io();
+
+    // UPDATE SCORE
+    function updateScore() {
+      const matchId = document.getElementById("matchId").value;
+      const scorea = document.getElementById("scoreA").value;
+      const scoreb = document.getElementById("scoreB").value;
+
+      if (!scorea || !scoreb) {
+        alert("Enter both scores");
+        return;
+      }
+
+      socket.emit("update_score", { matchId, scorea, scoreb });
+
+      document.getElementById("currentScore").innerText =
+        `Current Score: ${scorea} - ${scoreb}`;
+
+      // Clear inputs
+      document.getElementById("scoreA").value = "";
+      document.getElementById("scoreB").value = "";
+    }
+
+    // ADD EVENT
+    function addEvent() {
+      const matchId = document.getElementById("evtMatch").value;
+      const time = document.getElementById("evtTime").value;
+      const text = document.getElementById("evtText").value;
+      const type = document.getElementById("evtType").value;
+
+      if (!time || !text) {
+        alert("Fill all fields");
+        return;
+      }
+
+      socket.emit("new_event", { matchId, time, text, type });
+
+      // Clear inputs
+      document.getElementById("evtTime").value = "";
+      document.getElementById("evtText").value = "";
+
+      alert("Event added!");
+    }
+  </script>
+
+</body>
+</html>

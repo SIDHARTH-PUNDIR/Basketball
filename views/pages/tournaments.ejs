@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tournaments</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    body { background: #060810; color: #e8eaf0; font-family: 'Barlow', sans-serif; padding-top: 70px; }
+
+    body .main-navbar { top: 0 !important; }
+
+    /* HERO */
+    .t-page-hero {
+      position: relative;
+      padding: 100px 60px 80px;
+      background: linear-gradient(135deg, #0e0f1e 0%, #0a0c18 100%);
+      border-bottom: 1px solid rgba(255,122,24,0.15);
+      overflow: hidden;
+      text-align: center;
+    }
+
+    .t-page-hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at center, rgba(255,122,24,0.06) 0%, transparent 70%);
+    }
+
+    .t-page-hero h1 {
+      font-family: 'Anton', sans-serif;
+      font-size: 72px;
+      letter-spacing: 4px;
+      color: white;
+      position: relative;
+      z-index: 1;
+    }
+
+    .t-page-hero h1 span { color: #ff7a18; }
+
+    .t-page-hero p {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: #4a5068;
+      margin-top: 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .t-page-hero::after {
+      content: "";
+      position: absolute;
+      bottom: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 400px; height: 1px;
+      background: linear-gradient(90deg, transparent, #ff7a18, transparent);
+    }
+
+    /* GRID */
+    .t-grid {
+      max-width: 1200px;
+      margin: 70px auto;
+      padding: 0 40px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 28px;
+    }
+
+    /* CARD */
+    .t-card {
+      position: relative;
+      border-radius: 20px;
+      overflow: hidden;
+      text-decoration: none;
+      display: block;
+      border: 1px solid rgba(255,255,255,0.06);
+      transition: all 0.35s ease;
+      background: #0d1120;
+      height: 320px;
+    }
+
+    .t-card:hover {
+      transform: translateY(-8px);
+      border-color: rgba(255,122,24,0.4);
+      box-shadow: 0 30px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,122,24,0.15);
+    }
+
+    /* BG IMAGE */
+    .t-card-bg {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      transition: transform 0.5s ease;
+      filter: brightness(0.35) saturate(1.2);
+    }
+
+    .t-card:hover .t-card-bg {
+      transform: scale(1.05);
+      filter: brightness(0.45) saturate(1.4);
+    }
+
+    /* OVERLAY */
+    .t-card-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to top,
+        rgba(6,8,16,0.98) 0%,
+        rgba(6,8,16,0.7) 40%,
+        rgba(6,8,16,0.2) 100%
+      );
+    }
+
+    /* CONTENT */
+    .t-card-content {
+      position: absolute;
+      inset: 0;
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .t-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .t-card-status {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 5px 12px;
+      border-radius: 20px;
+    }
+
+    .status-ONGOING  { background: rgba(255,69,69,0.2); color: #ff4545; border: 1px solid rgba(255,69,69,0.4); }
+    .status-UPCOMING { background: rgba(255,122,24,0.15); color: #ff7a18; border: 1px solid rgba(255,122,24,0.3); }
+    .status-COMPLETED{ background: rgba(100,150,255,0.15); color: #6496ff; border: 1px solid rgba(100,150,255,0.3); }
+
+    .t-card-num {
+      font-family: 'Anton', sans-serif;
+      font-size: 60px;
+      color: rgba(255,255,255,0.04);
+      line-height: 1;
+    }
+
+    .t-card-bottom {}
+
+    .t-card-name {
+      font-family: 'Anton', sans-serif;
+      font-size: 32px;
+      letter-spacing: 2px;
+      color: white;
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+
+    .t-card-meta {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .t-card-meta span {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px;
+      letter-spacing: 1px;
+      color: #6a7090;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .t-card-meta span strong { color: #ff7a18; }
+
+    .t-card-arrow {
+      position: absolute;
+      bottom: 28px;
+      right: 28px;
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: rgba(255,122,24,0.15);
+      border: 1px solid rgba(255,122,24,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      transition: 0.25s;
+    }
+
+    .t-card:hover .t-card-arrow {
+      background: #ff7a18;
+      border-color: #ff7a18;
+      transform: translate(2px, -2px);
+    }
+
+    /* LIVE DOT */
+    .live-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #ff4545;
+      box-shadow: 0 0 6px #ff4545;
+      animation: pulse 1.2s ease-in-out infinite;
+      display: inline-block;
+    }
+
+    @keyframes pulse {
+      0%,100% { opacity:1; transform:scale(1); }
+      50% { opacity:0.5; transform:scale(0.7); }
+    }
+
+    @media (max-width: 900px) {
+      .t-grid { grid-template-columns: 1fr; }
+      .t-page-hero h1 { font-size: 48px; }
+    }
+  </style>
+</head>
+<body>
+
+<%- include("../partials/navbar") %>
+
+<div class="t-page-hero">
+  <h1>TOURNA<span>MENTS</span></h1>
+  <p>Register your team · Compete · Win the title</p>
+</div>
+
+<div class="t-grid">
+  <% tournaments.forEach((t, i) => { %>
+    <a href="/tournaments/<%= t.id %>" class="t-card">
+
+      <!-- BG IMAGE -->
+      <div class="t-card-bg"
+        style="background-image: url('<%= t.image || '/assets/tournaments/default.png' %>')">
+      </div>
+
+      <!-- OVERLAY -->
+      <div class="t-card-overlay"></div>
+
+      <!-- CONTENT -->
+      <div class="t-card-content">
+
+        <div class="t-card-top">
+          <span class="t-card-status status-<%= t.status %>">
+            <% if (t.status === 'ONGOING') { %><span class="live-dot"></span> &nbsp;<% } %>
+            <%= t.status %>
+          </span>
+          <div class="t-card-num">0<%= i + 1 %></div>
+        </div>
+
+        <div class="t-card-bottom">
+          <div class="t-card-name"><%= t.name.toUpperCase() %></div>
+          <div class="t-card-meta">
+            <span>📍 <strong><%= t.location %></strong></span>
+            <span>📅 <strong>
+              <%= new Date(t.start_date).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }) %>
+            </strong></span>
+            <span>👥 <strong><%= t.max_teams %> teams</strong></span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ARROW -->
+      <div class="t-card-arrow">→</div>
+
+    </a>
+  <% }) %>
+</div>
+
+</body>
+</html>

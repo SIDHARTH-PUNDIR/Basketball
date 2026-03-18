@@ -7,6 +7,8 @@ import session from "express-session";
 import { Strategy } from "passport-local";
 import dotenv from "dotenv";
 import multer from "multer";
+import { createServer } from "http";
+import { Server } from "socket.io";
 
 dotenv.config();
 
@@ -65,7 +67,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// Makes matches available in ALL templates automatically
 app.use(async (req, res, next) => {
   try {
     const matches = await db.query("SELECT * FROM matches ORDER BY id ASC");
@@ -90,6 +91,17 @@ app.get("/login", (req, res) => {
 
 app.get("/register", (req, res) => {
   res.render("pages/register");
+});
+app.get("/admin", (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.redirect("/login");
+  }
+
+  if (!req.user.is_admin) {
+   return res.redirect("/");
+  }
+
+  res.render("pages/admin");
 });
 
 /* =========================
@@ -129,14 +141,25 @@ app.post("/register", async (req, res) => {
 /* =========================
    LOGIN
 ========================= */
+app.post("/login", (req, res, next) => {
+  passport.authenticate("local", (err, user, info) => {
 
-app.post(
-  "/login",
-  passport.authenticate("local", {
-    successRedirect: "/dashboard",
-    failureRedirect: "/login",
-  })
-);
+    if (err) return next(err);
+    if (!user) return res.redirect("/login");
+
+    req.login(user, (err) => {
+      if (err) return next(err);
+
+      // 🔥 ROLE-BASED REDIRECT
+      if (user.is_admin) {
+        return res.redirect("/admin");
+      } else {
+        return res.redirect("/dashboard");
+      }
+    });
+
+  })(req, res, next);
+});
 
 /* =========================
    DASHBOARD
@@ -212,7 +235,6 @@ app.post("/remove-player/:id", async (req, res) => {
 
 app.get("/live", async (req, res) => {
   try {
-    // Find first LIVE match
     const liveMatch = await db.query(
       "SELECT id FROM matches WHERE status='LIVE' ORDER BY id ASC LIMIT 1"
     );
@@ -221,7 +243,6 @@ app.get("/live", async (req, res) => {
       return res.redirect(`/live/${liveMatch.rows[0].id}`);
     }
 
-    // Fallback: first match
     const firstMatch = await db.query(
       "SELECT id FROM matches ORDER BY id ASC LIMIT 1"
     );
@@ -237,6 +258,7 @@ app.get("/live", async (req, res) => {
     res.redirect("/");
   }
 });
+
 app.get("/live/:matchId", async (req, res) => {
   const matchId = req.params.matchId;
 
@@ -246,15 +268,13 @@ app.get("/live/:matchId", async (req, res) => {
     );
     const match = matchResult.rows[0];
 
-    // Always fetch home team players — visible to everyone
     const result = await db.query(
-      "SELECT * FROM players WHERE team=$1 ORDER BY id ASC",
+      "SELECT * FROM players WHERE LOWER(team)=LOWER($1) ORDER BY id ASC",
       [match.teama]
     );
     const players = result.rows;
 
-    // Still track logged-in user's team for the panel tag
-    const team = req.isAuthenticated() ? req.user.team : match.teama;
+    const team = match.teama;
 
     console.log("MATCH TEAM:", match.teama);
     console.log("PLAYERS FOUND:", players.length);
@@ -271,6 +291,15 @@ app.get("/live/:matchId", async (req, res) => {
     console.log(err);
   }
 });
+
+/* =========================
+   ADMIN
+========================= */
+
+app.get("/admin", (req, res) => {
+  res.render("pages/admin");
+});
+
 /* =========================
    LOGOUT
 ========================= */
@@ -321,9 +350,177 @@ passport.deserializeUser(async (id, cb) => {
 });
 
 /* =========================
-   START SERVER
+   HTTP SERVER + SOCKET.IO
 ========================= */
 
-app.listen(port, () => {
+const httpServer = createServer(app);
+const io = new Server(httpServer);
+
+io.on("connection", (socket) => {
+  console.log("Client connected:", socket.id);
+
+  // Update score
+  socket.on("update_score", async ({ matchId, scorea, scoreb }) => {
+    try {
+      await db.query(
+        "UPDATE matches SET scorea=$1, scoreb=$2 WHERE id=$3",
+        [scorea, scoreb, matchId]
+      );
+
+      io.emit(`match_${matchId}`, { scorea, scoreb });
+      console.log(`Score updated: match ${matchId} → ${scorea} - ${scoreb}`);
+
+    } catch (err) {
+      console.log(err);
+    }
+  });
+
+  // New play-by-play event
+  socket.on("new_event", ({ matchId, time, text, type }) => {
+    io.emit(`event_${matchId}`, { time, text, type });
+    console.log(`New event: match ${matchId} → [${type}] ${text}`);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("Client disconnected:", socket.id);
+  });
+});
+
+/* =========================
+   TOURNAMENTS
+========================= */
+
+app.get("/tournaments", async (req, res) => {
+  try {
+    const result = await db.query(
+      "SELECT * FROM tournaments ORDER BY start_date ASC"
+    );
+    res.render("pages/tournaments", {
+      tournaments: result.rows
+    });
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+app.get("/tournaments/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const tournament = await db.query(
+      "SELECT * FROM tournaments WHERE id=$1", [id]
+    );
+
+    const teams = await db.query(
+      "SELECT * FROM tournament_teams WHERE tournament_id=$1 ORDER BY registered_at ASC",
+      [id]
+    );
+
+    const matches = await db.query(
+      "SELECT * FROM tournament_matches WHERE tournament_id=$1 ORDER BY match_date ASC",
+      [id]
+    );
+
+    // Check if logged-in user's team is already registered
+    let isRegistered = false;
+    if (req.isAuthenticated()) {
+      const check = await db.query(
+        "SELECT * FROM tournament_teams WHERE tournament_id=$1 AND LOWER(team_name)=LOWER($2)",
+        [id, req.user.team]
+      );
+      isRegistered = check.rows.length > 0;
+    }
+
+    res.render("pages/tournament-detail", {
+      tournament: tournament.rows[0],
+      teams: teams.rows,
+      matches: matches.rows,
+      isRegistered
+    });
+
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+// Register team for tournament
+app.post("/tournaments/:id/register", async (req, res) => {
+  if (!req.isAuthenticated()) return res.redirect("/login");
+  const { id } = req.params;
+
+  try {
+    // Check if already registered
+    const check = await db.query(
+      "SELECT * FROM tournament_teams WHERE tournament_id=$1 AND LOWER(team_name)=LOWER($2)",
+      [id, req.user.team]
+    );
+
+    if (check.rows.length === 0) {
+      await db.query(
+        "INSERT INTO tournament_teams (tournament_id, team_name) VALUES ($1, $2)",
+        [id, req.user.team]
+      );
+    }
+
+    res.redirect(`/tournaments/${id}`);
+
+  } catch (err) {
+    console.log(err);
+  }
+});
+app.post("/admin/generate-fixtures/:tournamentId", async (req, res) => {
+  const { tournamentId } = req.params;
+
+  try {
+    const teams = await db.query(
+      "SELECT * FROM tournament_teams WHERE tournament_id=$1",
+      [tournamentId]
+    );
+
+    const teamList = teams.rows;
+
+    // Round robin — every team plays every other team
+    for (let i = 0; i < teamList.length; i++) {
+      for (let j = i + 1; j < teamList.length; j++) {
+        await db.query(
+          `INSERT INTO tournament_matches 
+           (tournament_id, teama, teamb, status, round) 
+           VALUES ($1, $2, $3, 'UPCOMING', 'GROUP')`,
+          [tournamentId, teamList[i].team_name, teamList[j].team_name]
+        );
+      }
+    }
+
+    res.redirect("/admin");
+
+  } catch (err) {
+    console.log(err);
+    res.redirect("/admin");
+  }
+});
+
+
+
+/* =========================
+   News
+========================= */
+
+app.get("/news", (req, res) => {
+
+    const news = [
+        {
+            _id: "1",
+            title: "Final Match Announced",
+            date: "March 18, 2026",
+            author: "Admin",
+            description: "The final match will be held this Sunday...",
+           image: "/assets/news/match.jpg"
+        }
+    ];
+
+    res.render("pages/news", { news });
+});
+
+
+httpServer.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });

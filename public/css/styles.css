@@ -1064,8 +1064,52 @@ flex-shrink: 0;
     /* basketball orange */
 
     font-weight: 500;
-
 }
+.year-selector {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  gap: 12px;
+
+  margin: 30px 0 50px; /* 👈 TOP | SIDES | BOTTOM */
+
+  position: relative;
+  z-index: 10;
+}
+
+.year-selector button {
+  background: #111827;
+  border: 1px solid #333;
+  color: white;
+  padding: 8px 16px;
+  margin: 5px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.year-selector button:hover {
+  background: #ff7a00;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 .footer-section {
     background: linear-gradient(180deg,

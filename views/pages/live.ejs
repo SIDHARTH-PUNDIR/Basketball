@@ -240,6 +240,28 @@
     </div>
   </div>
 </div>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  const socket = io();
+  const matchId = "<%= matchId %>";
 
+  socket.on(`match_${matchId}`, (data) => {
+    document.querySelectorAll(".sb-score")[0].textContent = data.scorea;
+    document.querySelectorAll(".sb-score")[1].textContent = data.scoreb;
+  });
+
+  socket.on(`event_${matchId}`, (data) => {
+    const feed  = document.querySelector(".events-feed");
+    const icons = { score: "🏀", foul: "⚠️", block: "🛡️" };
+    const div   = document.createElement("div");
+    div.className = `event-item event--${data.type}`;
+    div.innerHTML = `
+      <span class="event-time">${data.time}</span>
+      <span class="event-icon">${icons[data.type] || "📋"}</span>
+      <span class="event-text">${data.text}</span>
+    `;
+    feed.prepend(div);
+  });
+</script>
 </body>
 </html>

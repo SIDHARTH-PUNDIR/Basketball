@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CourtCommand | News</title>
+
+    <!-- INTERNAL CSS -->
+    <style>
+
+    /* =========================
+       GLOBAL RESET
+    ========================= */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        background: #050912;
+        font-family: 'Poppins', sans-serif;
+        color: #fff;
+    }
+
+    /* =========================
+       HEADER
+    ========================= */
+   .news-header {
+    text-align: center;
+    padding: 60px 20px 30px;
+    margin-top: 30px; /* 👈 ADD THIS */
+}
+
+    .news-header h1 {
+        font-size: 42px;
+        color: #ff7a00;
+        margin-bottom: 10px;
+    }
+
+    .news-header p {
+        color: #aaa;
+        font-size: 16px;
+    }
+
+    /* =========================
+       NEWS CONTAINER
+    ========================= */
+   .news-container {
+    width: 85%;
+    margin: auto;
+
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+
+    gap: 25px;
+    padding-bottom: 60px;
+}
+    /* =========================
+       NEWS CARD
+    ========================= */
+    .news-card {
+        display: flex;
+        gap: 25px;
+flex-direction: column;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 14px;
+
+        overflow: hidden;
+
+        transition: 0.3s ease;
+    }
+
+    .news-card:hover {
+        transform: translateY(-5px);
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* IMAGE */
+    .news-image img {
+        width: 100%;
+    height: 200px;
+        object-fit: cover;
+    }
+
+    /* CONTENT */
+    .news-content {
+        padding: 20px;
+        flex: 1;
+    }
+
+    .news-content h2 {
+        font-size: 22px;
+        margin-bottom: 8px;
+    }
+
+    /* META */
+    .news-meta {
+        font-size: 13px;
+        color: #888;
+        margin-bottom: 10px;
+    }
+
+    /* DESCRIPTION */
+    .news-desc {
+        font-size: 15px;
+        color: #ccc;
+        margin-bottom: 12px;
+        line-height: 1.5;
+    }
+
+    /* READ MORE */
+    .read-more {
+        text-decoration: none;
+        color: #ff7a00;
+        font-weight: 600;
+        transition: 0.2s;
+    }
+
+    .read-more:hover {
+        color: #ffa94d;
+    }
+
+    /* =========================
+       EMPTY STATE
+    ========================= */
+    .no-news {
+        text-align: center;
+        margin-top: 50px;
+    }
+
+    .no-news h2 {
+        color: #ff7a00;
+    }
+
+    /* =========================
+       RESPONSIVE
+    ========================= */
+    @media (max-width: 768px) {
+
+        .news-card {
+            flex-direction: column;
+        }
+
+        .news-image img {
+            width: 100%;
+            height: 200px;
+        }
+
+        .news-container {
+            width: 92%;
+        }
+    }
+    /* ═══════════════════════════════════════
+   NAVBAR (live page overrides)
+═══════════════════════════════════════ */
+
+.main-navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 70px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 40px;
+  background: rgba(10, 10, 20, 0.85);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+  z-index: 2000;
+}
+
+.nav-left a,
+.nav-right a {
+  margin: 0 16px;
+  font-size: 18px;
+  text-decoration: none;
+  color: #d6d6d6;
+  transition: all .2s ease;
+}
+
+.nav-left a:hover,
+.nav-right a:hover { color: #ffffff; }
+
+.logo {
+  color: #f6efef;
+  font-size: 35px;
+  font-weight: 700;
+  letter-spacing: .5px;
+}
+
+.logo span { color: #f97316; }
+
+.signin {
+  background: #f97316;
+  border: none;
+  padding: 9px 18px;
+  border-radius: 20px;
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  transition: .2s ease;
+}
+
+.signin:hover {
+  background: #ff8c33;
+  transform: translateY(-1px);
+}
+.featured-news {
+    width: 85%;
+    margin: 30px auto;
+}
+
+.featured-card {
+    position: relative;
+    height: 300px;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.featured-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.featured-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+
+    padding: 25px;
+
+    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+}
+
+.featured-overlay h1 {
+    font-size: 28px;
+    color: #fff;
+}
+
+.featured-overlay p {
+    color: #ccc;
+    margin: 5px 0;
+}
+
+.featured-overlay a {
+    color: #ff7a00;
+    font-weight: bold;
+}
+
+
+    </style>
+
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <%- include('../partials/navbar') %>
+
+    <!-- HEADER -->
+    <section class="news-header">
+        <h1>Latest News</h1>
+        <p>Stay updated with matches, announcements, and highlights</p>
+    </section>
+
+
+    <section class="featured-news">
+
+    <% if (news && news.length > 0) { %>
+        <div class="featured-card">
+            <img src="<%= news[0].image %>" alt="featured">
+
+            <div class="featured-overlay">
+                <h1><%= news[0].title %></h1>
+                <p><%= news[0].description %></p>
+            </div>
+        </div>
+    <% } %>
+
+</section>
+    <!-- NEWS LIST -->
+    <section class="news-container">
+
+        <% if (news && news.length > 0) { %>
+
+            <% news.forEach(item => { %>
+                <div class="news-card">
+
+                    <div class="news-image">
+                        <img src="<%= item.image %>" alt="news">
+                    </div>
+
+                    <div class="news-content">
+                        <h2><%= item.title %></h2>
+
+                        <p class="news-meta">
+                            <span><%= item.date %></span> • 
+                            <span><%= item.author %></span>
+                        </p>
+
+                        <p class="news-desc">
+                            <%= item.description %>
+                        </p>
+
+                    </div>
+
+                </div>
+            <% }) %>
+
+        <% } else { %>
+
+            <div class="no-news">
+                <h2>No News Available</h2>
+                <p>Check back later for updates.</p>
+            </div>
+
+        <% } %>
+
+    </section>
+
+</body>
+</html>
