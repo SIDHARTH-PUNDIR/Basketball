@@ -8,7 +8,6 @@ import { Strategy } from "passport-local";
 import dotenv from "dotenv";
 import multer from "multer";
 
-
 dotenv.config();
 
 const app = express();
@@ -28,6 +27,7 @@ app.set("view engine", "ejs");
 app.use(express.static("public"));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
+
 app.use(
   session({
     secret: process.env.SESSION_SECRET,
@@ -36,30 +36,23 @@ app.use(
   })
 );
 
-
-
 app.use(passport.initialize());
 app.use(passport.session());
-
 
 /* =========================
    MULTER IMAGE UPLOAD
 ========================= */
 
 const storage = multer.diskStorage({
-
-destination: function (req, file, cb) {
-cb(null, "public/assets/players");
-},
-
-filename: function (req, file, cb) {
-cb(null, Date.now() + "-" + file.originalname);
-}
-
+  destination: function (req, file, cb) {
+    cb(null, "public/assets/players");
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + "-" + file.originalname);
+  },
 });
 
-const upload = multer({ storage: storage });
-
+const upload = multer({ storage });
 
 /* =========================
    GLOBAL USER ACCESS
@@ -69,6 +62,7 @@ app.use((req, res, next) => {
   res.locals.user = req.user;
   next();
 });
+
 /* =========================
    DATABASE CONNECTION
 ========================= */
@@ -88,31 +82,25 @@ db.connect();
 ========================= */
 
 app.get("/", (req, res) => {
-  res.render("index");
+  res.render("pages/index");
 });
 
 app.get("/login", (req, res) => {
-  res.render("login");
+  res.render("pages/login");
 });
 
 app.get("/register", (req, res) => {
-  res.render("register");
+  res.render("pages/register");
 });
-
 
 /* =========================
    REGISTER USER
 ========================= */
 
 app.post("/register", async (req, res) => {
-
-  const name = req.body.name;
-  const email = req.body.email;
-  const team = req.body.team;
-  const password = req.body.password;
+  const { name, email, team, password } = req.body;
 
   try {
-
     const checkUser = await db.query(
       "SELECT * FROM users WHERE email=$1",
       [email]
@@ -132,16 +120,13 @@ app.post("/register", async (req, res) => {
     const user = result.rows[0];
 
     req.login(user, (err) => {
-      if (err) {
-        console.log(err);
-      }
+      if (err) console.log(err);
       return res.redirect("/dashboard");
     });
 
   } catch (err) {
     console.log(err);
   }
-
 });
 
 /* =========================
@@ -155,48 +140,48 @@ app.post(
     failureRedirect: "/login",
   })
 );
+
 /* =========================
    ADD PLAYER PAGE
 ========================= */
 
 app.get("/add-player", (req, res) => {
-  res.render("add-player");
+  if (!req.isAuthenticated()) return res.redirect("/login");
+  res.render("pages/add-player");
 });
-
 
 /* =========================
    ADD PLAYER
 ========================= */
 
 app.post("/add-player", upload.single("image"), async (req, res) => {
-
-  const name = req.body.name;
-  const role = req.body.role;
+  const { name, role, position } = req.body;
   const team = req.user.team;
-  const position = req.body.position;
 
   const image = "/assets/players/" + req.file.filename;
 
   try {
+    await db.query(
+      "INSERT INTO players (name,role,team,image,position) VALUES ($1,$2,$3,$4,$5)",
+      [name, role, team, image, position]
+    );
 
-   await db.query(
-"INSERT INTO players (name,role,team,image,position) VALUES ($1,$2,$3,$4,$5)",
-[name,role,team,image,position]
-);
     res.redirect("/dashboard");
 
   } catch (err) {
     console.log(err);
   }
-
 });
-app.post("/remove-player/:id", async (req, res) => {
 
+/* =========================
+   REMOVE PLAYER
+========================= */
+
+app.post("/remove-player/:id", async (req, res) => {
   const id = req.params.id;
   const team = req.user.team;
 
   try {
-
     await db.query(
       "DELETE FROM players WHERE id = $1 AND team = $2",
       [id, team]
@@ -207,37 +192,35 @@ app.post("/remove-player/:id", async (req, res) => {
   } catch (err) {
     console.log(err);
   }
-
 });
+
 /* =========================
-   DASHBOARD (PROTECTED)
+   DASHBOARD
 ========================= */
 
 app.get("/dashboard", async (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.redirect("/login");
+  }
 
-if (!req.isAuthenticated()) {
-return res.redirect("/login");
-}
+  try {
+    const team = req.user.team;
 
-try {
+    const players = await db.query(
+      "SELECT * FROM players WHERE team=$1 ORDER BY id ASC",
+      [team]
+    );
 
-const team = req.user.team;
+    res.render("pages/dashboard", {
+      user: req.user,
+      players: players.rows,
+    });
 
-const players = await db.query(
-"SELECT * FROM players WHERE team=$1 ORDER BY id ASC",
-[team]
-);
-
-res.render("dashboard", {
-user: req.user,
-players: players.rows
+  } catch (err) {
+    console.log(err);
+  }
 });
 
-} catch (err) {
-console.log(err);
-}
-
-});
 /* =========================
    LOGOUT
 ========================= */
@@ -249,16 +232,14 @@ app.get("/logout", (req, res) => {
 });
 
 /* =========================
-   PASSPORT LOCAL STRATEGY
+   PASSPORT STRATEGY
 ========================= */
 
 passport.use(
   new Strategy(
     { usernameField: "email" },
     async function verify(email, password, cb) {
-
       try {
-
         const result = await db.query(
           "SELECT * FROM users WHERE email=$1",
           [email]
@@ -269,25 +250,20 @@ passport.use(
         }
 
         const user = result.rows[0];
-
         const valid = await bcrypt.compare(password, user.password);
 
-        if (valid) {
-          return cb(null, user);
-        } else {
-          return cb(null, false);
-        }
+        if (valid) return cb(null, user);
+        else return cb(null, false);
 
       } catch (err) {
         return cb(err);
       }
-
     }
   )
 );
 
 /* =========================
-   SESSION MANAGEMENT
+   SESSION
 ========================= */
 
 passport.serializeUser((user, cb) => {
@@ -295,41 +271,27 @@ passport.serializeUser((user, cb) => {
 });
 
 passport.deserializeUser(async (id, cb) => {
-
   try {
     const result = await db.query(
       "SELECT * FROM users WHERE id=$1",
       [id]
     );
-
     cb(null, result.rows[0]);
-
   } catch (err) {
     cb(err);
   }
-
 });
 
-
-
-
-
-
 /* =========================
-   /assign-position
+   ASSIGN POSITION
 ========================= */
-app.post("/assign-position", async (req, res) => {
 
-  if (!req.isAuthenticated()) {
-    return res.sendStatus(401);
-  }
+app.post("/assign-position", async (req, res) => {
+  if (!req.isAuthenticated()) return res.sendStatus(401);
 
   const { playerId, position } = req.body;
 
-  console.log(req.body); // debug
-
   try {
-
     await db.query(
       "UPDATE players SET position = NULL WHERE position = $1 AND team = $2",
       [position, req.user.team]
@@ -346,8 +308,8 @@ app.post("/assign-position", async (req, res) => {
     console.log(err);
     res.sendStatus(500);
   }
-
 });
+
 /* =========================
    START SERVER
 ========================= */

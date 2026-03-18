@@ -1,4 +1,26 @@
-node_modules/
-.env
+# Node dependencies
+*node_modules/
+*.env
+*.log
+npm-debug.log*
+
+# Python environments & cache
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# IDEs and Editors
+.vscode/
+.idea/
+
+# OS generated files
 .DS_Store
-npm-debug.log
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
