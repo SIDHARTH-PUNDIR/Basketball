@@ -174,9 +174,21 @@ app.get("/dashboard", async (req, res) => {
       [req.user.team]
     );
 
+    const tournaments = await db.query(
+      "SELECT * FROM tournaments ORDER BY start_date ASC"
+    );
+
+    // ✅ ADD THIS HERE
+    const registered = await db.query(
+      "SELECT tournament_id FROM tournament_teams WHERE team_name=$1",
+      [req.user.team]
+    );
+
     res.render("pages/dashboard", {
       user: req.user,
       players: players.rows,
+      tournaments: tournaments.rows,
+      registered: registered.rows   // ✅ PASS TO EJS
     });
 
   } catch (err) {
