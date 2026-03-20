@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tournaments</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Barlow+Condensed:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg:        #0f1014;
+  --card:      #17191f;
+  --card-h:    #1d2028;
+  --line:      rgba(255,255,255,0.07);
+  --line2:     rgba(255,255,255,0.12);
+  --gold:      #f5c518;
+  --live:      #34d27a;
+  --live-bg:   rgba(52,210,122,0.1);
+  --final:     #ff6b35;
+  --final-bg:  rgba(255,107,53,0.1);
+  --up:        #7b9ef0;
+  --up-bg:     rgba(123,158,240,0.1);
+  --txt:       #e8eaf0;
+  --txt2:      #8a8f9e;
+  --txt3:      #4a4f60;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); font-family: 'Inter', sans-serif; color: var(--txt); -webkit-font-smoothing: antialiased; }
+
+.sp {
+  padding: 180px 16px 80px;
+  min-height: 100vh;
+  background:
+    linear-gradient(rgba(10,10,15,0.82), rgba(10,10,15,0.82)),
+    url('/assets/Bg/standing2.avif') center/cover fixed;
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+.sp-inner { max-width: 720px; margin: 0 auto; }
+
+.sp-topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+.sp-heading { font-family: 'Barlow Condensed', sans-serif; font-size: 28px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #fff; }
+.sp-heading span { color: var(--gold); }
+.sp-count { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--txt3); letter-spacing: 0.1em; }
+
+/* TOURNAMENT TABS */
+.t-bar { display: flex; overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid var(--line); gap: 0; }
+.t-bar::-webkit-scrollbar { display: none; }
+.t-btn { font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500; padding: 11px 18px; border: none; background: none; color: var(--txt2); cursor: pointer; white-space: nowrap; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color 0.15s, border-color 0.15s; }
+.t-btn:hover { color: var(--txt); }
+.t-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+/* STATUS PILLS */
+.s-bar { display: flex; gap: 6px; padding: 16px 0 20px; flex-wrap: wrap; }
+.s-btn { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 500; padding: 5px 14px; border-radius: 20px; border: 1px solid var(--line2); background: none; color: var(--txt2); cursor: pointer; transition: all 0.15s; }
+.s-btn:hover { color: var(--txt); }
+.s-btn.active           { background: var(--card-h); color: #fff; }
+.s-btn.active.slive     { background: var(--live-bg);  color: var(--live);  border-color: rgba(52,210,122,0.25); }
+.s-btn.active.sfinal    { background: var(--final-bg); color: var(--final); border-color: rgba(255,107,53,0.25); }
+.s-btn.active.supcoming { background: var(--up-bg);    color: var(--up);    border-color: rgba(123,158,240,0.25); }
+
+/* PANELS */
+.t-panel { display: none; }
+.t-panel.active { display: block; }
+
+/* ROUND HEADER */
+.r-head { display: flex; align-items: center; gap: 12px; padding: 18px 0 8px; }
+.r-head-txt { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--txt3); white-space: nowrap; }
+.r-head-txt.is-today { color: var(--gold); }
+.r-head-line { flex: 1; height: 1px; background: var(--line); }
+.today-tag { font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 600; color: #000; background: var(--gold); padding: 2px 8px; border-radius: 4px; }
+
+/* MATCH CARD */
+.mc { background: var(--card); border-radius: 8px; margin-bottom: 4px; overflow: hidden; border: 1px solid var(--line); transition: background 0.15s, border-color 0.15s; position: relative; animation: up 0.25s ease both; }
+@keyframes up { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+.mc:hover { background: var(--card-h); border-color: var(--line2); }
+.mc::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; }
+.mc.live::before     { background: var(--live); }
+.mc.final::before    { background: var(--final); }
+.mc.upcoming::before { background: var(--up); }
+
+.mc-inner { display: flex; align-items: stretch; }
+.mc-teams { flex: 1; padding: 0 16px 0 18px; }
+
+.mc-row { display: flex; align-items: center; justify-content: space-between; height: 44px; gap: 12px; }
+.mc-row + .mc-row { border-top: 1px solid var(--line); }
+
+.mc-name { font-size: 14px; font-weight: 400; color: var(--txt); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mc-name.w { color: #fff; font-weight: 600; }
+.mc-name.l { color: var(--txt3); }
+
+.mc-score { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 700; color: #fff; min-width: 26px; text-align: right; line-height: 1; }
+.mc-score.dim { color: var(--txt3); font-size: 18px; font-weight: 400; }
+
+.mc-meta { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 10px 14px; border-left: 1px solid var(--line); min-width: 96px; background: rgba(0,0,0,0.1); }
+
+.mc-badge { font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 9px; border-radius: 4px; white-space: nowrap; }
+.mc-badge.live     { background: var(--live-bg);  color: var(--live);  animation: pulse 2s ease-in-out infinite; }
+.mc-badge.final    { background: var(--final-bg); color: var(--final); }
+.mc-badge.upcoming { background: var(--up-bg);    color: var(--up); }
+
+@keyframes pulse { 0%,100% { box-shadow: none; } 50% { box-shadow: 0 0 10px rgba(52,210,122,0.3); } }
+
+.mc-sub { font-family: 'Inter', sans-serif; font-size: 10px; color: var(--txt3); text-align: center; line-height: 1.5; }
+
+.live-dot { display: inline-block; width: 5px; height: 5px; background: var(--live); border-radius: 50%; margin-right: 4px; vertical-align: middle; position: relative; top: -1px; animation: blink 1s step-end infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+.empty { text-align: center; padding: 60px 20px; color: var(--txt3); font-size: 13px; letter-spacing: 0.04em; }
+
+@media (max-width: 480px) {
+  .mc-name { font-size: 13px; }
+  .mc-score { font-size: 19px; }
+  .mc-meta { min-width: 80px; padding: 10px; }
+}
+</style>
+</head>
+<body>
+  <%- include("../partials/navbar") %>
+
+
+
+<div class="sp">
+  <div class="sp-inner">
+
+    <div class="sp-topbar">
+      <h1 class="sp-heading">Match <span>Schedule</span></h1>
+      <span class="sp-count"><%= totalMatches %> MATCHES</span>
+    </div>
+
+    <div class="t-bar">
+      <button class="t-btn active" onclick="switchT('all',this)">All</button>
+      <% tournaments.forEach(t => { %>
+        <button class="t-btn" onclick="switchT(<%= t.id %>,this)"><%= t.name %></button>
+      <% }) %>
+    </div>
+
+    <div class="s-bar">
+      <button class="s-btn active"        onclick="filterS('all',this)">All</button>
+      <button class="s-btn slive"         onclick="filterS('live',this)">● Live</button>
+      <button class="s-btn supcoming"     onclick="filterS('upcoming',this)">Upcoming</button>
+      <button class="s-btn sfinal"        onclick="filterS('final',this)">Final</button>
+    </div>
+
+    <!-- ALL PANEL -->
+    <div class="t-panel active" id="panel-all">
+      <% if (allMatches.length === 0) { %>
+        <div class="empty">No matches scheduled yet.</div>
+      <% } else {
+           let lg = null;
+           allMatches.forEach(function(m) {
+             const st = (m.status||'upcoming').toLowerCase();
+             const sA = m.scorea, sB = m.scoreb;
+             const aW = st==='final' && sA!==null && sB!==null && sA>sB;
+             const bW = st==='final' && sA!==null && sB!==null && sB>sA;
+             const dO = m.match_date ? new Date(m.match_date) : null;
+             const dS = dO ? dO.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}) : null;
+             const isT   = dO && dO.toDateString() === new Date().toDateString();
+             const isTom = dO && dO.toDateString() === new Date(Date.now()+86400000).toDateString();
+             const gk = m.round || dS || 'TBD';
+             const gd = m.round
+               ? m.round + (dS ? '  ·  '+(isT?'Today':isTom?'Tomorrow':dS) : '')
+               : (isT?'Today':isTom?'Tomorrow':(dS||'TBD'));
+      %>
+        <% if(gk!==lg){ lg=gk; %>
+          <div class="r-head">
+            <span class="r-head-txt <%=isT?'is-today':''%>"><%=gd%></span>
+            <%if(isT){%><span class="today-tag">Today</span><%}%>
+            <div class="r-head-line"></div>
+          </div>
+        <%}%>
+        <div class="mc <%=st%>" data-status="<%=st%>">
+          <div class="mc-inner">
+            <div class="mc-teams">
+              <div class="mc-row">
+                <span class="mc-name <%=aW?'w':bW?'l':''%>"><%=m.teama%></span>
+                <span class="mc-score <%=sA===null?'dim':''%>"><%=sA!==null?sA:'–'%></span>
+              </div>
+              <div class="mc-row">
+                <span class="mc-name <%=bW?'w':aW?'l':''%>"><%=m.teamb%></span>
+                <span class="mc-score <%=sB===null?'dim':''%>"><%=sB!==null?sB:'–'%></span>
+              </div>
+            </div>
+            <div class="mc-meta">
+              <span class="mc-badge <%=st%>"><%if(st==='live'){%><span class="live-dot"></span><%}%><%=m.status%></span>
+              <span class="mc-sub">
+                <%if(m.tournament_name){%><%=m.tournament_name%><%}%>
+                <%if(m.tournament_name&&m.round){%><br><%}%>
+                <%if(m.round){%><%=m.round%><%}%>
+              </span>
+            </div>
+          </div>
+        </div>
+      <% }); } %>
+    </div>
+
+    <!-- PER-TOURNAMENT PANELS -->
+    <% tournaments.forEach(function(t) {
+         const ms = matchesByTournament[t.id] || [];
+    %>
+      <div class="t-panel" id="panel-<%=t.id%>">
+        <%if(ms.length===0){%>
+          <div class="empty">No matches for this tournament yet.</div>
+        <%} else {
+            let lg2=null;
+            ms.forEach(function(m){
+              const st=(m.status||'upcoming').toLowerCase();
+              const sA=m.scorea,sB=m.scoreb;
+              const aW=st==='final'&&sA!==null&&sB!==null&&sA>sB;
+              const bW=st==='final'&&sA!==null&&sB!==null&&sB>sA;
+              const dO=m.match_date?new Date(m.match_date):null;
+              const dS=dO?dO.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}):null;
+              const isT=dO&&dO.toDateString()===new Date().toDateString();
+              const isTom=dO&&dO.toDateString()===new Date(Date.now()+86400000).toDateString();
+              const gk=m.round||dS||'TBD';
+              const gd=m.round?m.round+(dS?'  ·  '+(isT?'Today':isTom?'Tomorrow':dS):''):(isT?'Today':isTom?'Tomorrow':(dS||'TBD'));
+        %>
+          <%if(gk!==lg2){lg2=gk;%>
+            <div class="r-head">
+              <span class="r-head-txt <%=isT?'is-today':''%>"><%=gd%></span>
+              <%if(isT){%><span class="today-tag">Today</span><%}%>
+              <div class="r-head-line"></div>
+            </div>
+          <%}%>
+          <div class="mc <%=st%>" data-status="<%=st%>">
+            <div class="mc-inner">
+              <div class="mc-teams">
+                <div class="mc-row">
+                  <span class="mc-name <%=aW?'w':bW?'l':''%>"><%=m.teama%></span>
+                  <span class="mc-score <%=sA===null?'dim':''%>"><%=sA!==null?sA:'–'%></span>
+                </div>
+                <div class="mc-row">
+                  <span class="mc-name <%=bW?'w':aW?'l':''%>"><%=m.teamb%></span>
+                  <span class="mc-score <%=sB===null?'dim':''%>"><%=sB!==null?sB:'–'%></span>
+                </div>
+              </div>
+              <div class="mc-meta">
+                <span class="mc-badge <%=st%>"><%if(st==='live'){%><span class="live-dot"></span><%}%><%=m.status%></span>
+                <%if(m.round){%><span class="mc-sub"><%=m.round%></span><%}%>
+              </div>
+            </div>
+          </div>
+        <%}); }%>
+      </div>
+    <%});%>
+
+  </div>
+</div>
+
+<script>
+  window._status = 'all';
+
+  function switchT(id, btn) {
+    document.querySelectorAll('.t-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.t-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + id).classList.add('active');
+    applyFilter();
+  }
+
+  function filterS(s, btn) {
+    document.querySelectorAll('.s-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    window._status = s;
+    applyFilter();
+  }
+
+  function applyFilter() {
+    const s = window._status;
+    const panel = document.querySelector('.t-panel.active');
+    if (!panel) return;
+    panel.querySelectorAll('.mc').forEach(c => {
+      c.style.display = (s==='all' || c.dataset.status===s) ? 'block' : 'none';
+    });
+    panel.querySelectorAll('.r-head').forEach(h => {
+      let el = h.nextElementSibling, vis = false;
+      while (el && !el.classList.contains('r-head')) {
+        if (el.classList.contains('mc') && el.style.display !== 'none') { vis = true; break; }
+        el = el.nextElementSibling;
+      }
+      h.style.display = vis ? 'flex' : 'none';
+    });
+  }
+</script>
+  </body>
+</html>

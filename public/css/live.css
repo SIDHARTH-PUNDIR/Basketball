@@ -472,3 +472,162 @@ body .main-navbar {
   .sb-score     { font-size: 52px; }
   .scoreboard-hero { padding: 40px 20px 36px; }
 }
+
+
+/* =============================
+   NEW LIVE LAYOUT
+============================= */
+
+.live-layout {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 40px 30px;
+  display: grid;
+  grid-template-columns: 260px 1fr 260px;
+  gap: 30px;
+  align-items: start;
+}
+
+/* TEAM PANELS */
+.team-panel {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 16px;
+  padding: 16px;
+  height: fit-content;
+}
+
+/* CENTER */
+.center-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* CLOCK */
+.match-clock {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+
+  font-family: 'Anton', sans-serif;
+  font-size: 42px;
+
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.05);
+
+  padding: 12px 24px;
+  border-radius: 12px;
+
+  box-shadow: 0 0 30px rgba(255,122,24,0.15);
+}
+
+#clock-time {
+  color: #ffffff;
+  letter-spacing: 2px;
+}
+
+.clock-label {
+  font-size: 16px;
+  color: #ff7a18;
+  font-family: 'Barlow Condensed', sans-serif;
+}
+
+/* PLAY BY PLAY BELOW */
+.playby-container {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 16px;
+  padding: 20px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 1000px) {
+  .live-layout {
+    grid-template-columns: 1fr;
+  }
+}
+.right-team .roster-img {
+  border: 2px solid rgba(100,150,255,0.5);
+}
+
+.right-team .roster-pos {
+  color: #6496ff;
+}
+/* ── Roster card position relative for tooltip ── */
+.roster-card {
+  position: relative;
+}
+
+/* ── Tooltip hidden by default ── */
+.player-tooltip {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: calc(100% + 10px);
+  transform: translateY(-50%);
+  background: #0d1525;
+  border: 1px solid #1e3a5f;
+  border-radius: 8px;
+  padding: 10px 14px;
+  min-width: 130px;
+  z-index: 100;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  pointer-events: none;
+}
+
+/* Tooltip arrow */
+.player-tooltip::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 100%;
+  transform: translateY(-50%);
+  border: 6px solid transparent;
+  border-right-color: #1e3a5f;
+}
+
+/* Show on hover */
+.roster-card:hover .player-tooltip {
+  display: block;
+}
+
+.tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 3px 0;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  color: #8aa4c8;
+  border-bottom: 1px solid #1e3a5f;
+}
+
+.tooltip-row:last-child {
+  border-bottom: none;
+}
+
+.tooltip-row span:last-child {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+/* Red fouls highlight if 3+ fouls */
+.tooltip-row.foul-row span:last-child {
+  color: #ff7a18;
+}
+
+/* For left team, show tooltip on the right.
+   For right team, flip tooltip to the left side */
+.right-team .player-tooltip {
+  left: auto;
+  right: calc(100% + 10px);
+}
+
+.right-team .player-tooltip::before {
+  right: auto;
+  left: 100%;
+  border-right-color: transparent;
+  border-left-color: #1e3a5f;
+}

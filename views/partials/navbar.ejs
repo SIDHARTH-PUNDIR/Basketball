@@ -1,28 +1,30 @@
 <header class="main-navbar">
 
-<nav class="nav-left">
-<a href="/">Home</a>
-<% if (user && user.is_admin) { %>
-  <a href="/admin">Admin</a>
-<% } %>
-<a href="#">Clubs</a>
-<a href="#">Stats</a>
-</nav>
+  <nav class="nav-left">
+    <a href="/">Home</a>
+    <a href="/tournaments">Tournaments</a>
 
-<div class="logo">Court<span>X</span></div>
+    <% if (user && user.is_admin) { %>
+      <a href="/admin">Admin</a>
+    <% } %>
+  </nav>
 
-<nav class="nav-right">
-<a href="#">Standings</a>
-<a href="/tournaments">tournaments</a>
-<a href="/news">News</a>
-<% if(user){ %>
-      <a href="/dashboard">Dashboard</a>
-      <a href="/logout" class="signin">Logout</a>
+  <div class="logo">Court<span>X</span></div>
+
+ <nav class="nav-right">
+
+  <a href="/standings">Standings</a>
+  <a href="/news">News</a>
+
+  <% if (user && !user.is_admin) { %>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/logout" class="signin">Logout</a>
+  <% } else if (user && user.is_admin) { %>
+    <a href="/logout" class="signin">Logout</a>
   <% } else { %>
-      <a href="/login" class="signin">Sign In</a>
+    <a href="/login" class="signin">Sign In</a>
   <% } %>
+
 </nav>
 
 </header>
-
-

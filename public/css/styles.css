@@ -231,20 +231,57 @@ flex-shrink: 0;
     transition: all .2s ease;
 }
 
-.nav-left a:hover,
-.nav-right a:hover {
-    color: #ffffff;
+.nav-left,
+.nav-right {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+/* LEFT SIDE */
+.nav-left {
+    justify-content: flex-start;
+}
+
+/* RIGHT SIDE */
+.nav-right {
+    justify-content: flex-end;
+}
+.nav-left a,
+.nav-right a {
+    position: relative;
+}
+
+.nav-left a::after,
+.nav-right a::after {
+    content: "";
+    position: absolute;
+    bottom: -6px;
+    left: 0;
+    width: 0%;
+    height: 2px;
+    background: #f97316;
+    transition: width 0.3s ease;
+}
+
+.nav-left a:hover::after,
+.nav-right a:hover::after {
+    width: 100%;
 }
 
 /* LOGO */
 
+/* 🔥 PERFECT CENTER LOGO */
 .logo {
-    color: #f6efef;
-    font-size: 35px;
-    font-weight: 700;
-    letter-spacing: .5px;
-}
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
 
+    font-size: 28px;
+    font-weight: 700;
+    color: #f6efef;
+}
 .logo span {
     color: #f97316;
 }
@@ -252,23 +289,20 @@ flex-shrink: 0;
 /* SIGN IN BUTTON */
 
 .signin {
+    display: inline-flex;
+    align-items: center;
+
     background: #f97316;
-
-    border: none;
-
-    padding: 9px 18px;
+    padding: 8px 18px;
 
     border-radius: 20px;
-
     color: white;
 
-    font-size: 13px;
-
+    font-size: 14px;
     font-weight: 600;
 
-    transition: .2s ease;
+    transition: 0.25s ease;
 }
-
 .signin:hover {
     background: #ff8c33;
     transform: translateY(-1px);

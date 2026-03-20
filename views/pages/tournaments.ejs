@@ -58,6 +58,34 @@
       background: linear-gradient(90deg, transparent, #ff7a18, transparent);
     }
 
+ /* cretae-btn*/
+    .create-btn {
+  position: absolute;
+  top: 200px;
+  right: 60px;
+
+  background: #ff7a18;
+  color: white;
+  padding: 10px 22px;
+  border-radius: 10px;
+
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 700;
+
+  text-decoration: none;
+  transition: 0.25s;
+  z-index: 2;
+}
+
+.create-btn:hover {
+  background: #ff8f32;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(255,122,24,0.4);
+}
+
     /* GRID */
     .t-grid {
       max-width: 1200px;
@@ -94,7 +122,7 @@
       background-size: cover;
       background-position: center;
       transition: transform 0.5s ease;
-      filter: brightness(0.35) saturate(1.2);
+      filter: brightness(0.45) saturate(1.2);
     }
 
     .t-card:hover .t-card-bg {
@@ -220,6 +248,25 @@
       .t-grid { grid-template-columns: 1fr; }
       .t-page-hero h1 { font-size: 48px; }
     }
+
+
+    .creator-badge {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+
+  background: rgba(255,122,24,0.15);
+  border: 1px solid rgba(255,122,24,0.4);
+  color: #ff7a18;
+
+  padding: 5px 10px;
+  border-radius: 20px;
+
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
   </style>
 </head>
 <body>
@@ -230,6 +277,10 @@
   <h1>TOURNA<span>MENTS</span></h1>
   <p>Register your team · Compete · Win the title</p>
 </div>
+ <!-- RIGHT BUTTON -->
+  <% if (user) { %>
+    <a href="/tournaments/create" class="create-btn">Organize Tournament</a>
+  <% } %>
 
 <div class="t-grid">
   <% tournaments.forEach((t, i) => { %>
@@ -245,8 +296,11 @@
 
       <!-- CONTENT -->
       <div class="t-card-content">
-
-        <div class="t-card-top">
+       
+        <div class="t-card-top"> 
+          <% if (user && user.id === t.created_by) { %>
+  <div class="creator-badge">Your Tournament</div>
+<% } %>
           <span class="t-card-status status-<%= t.status %>">
             <% if (t.status === 'ONGOING') { %><span class="live-dot"></span> &nbsp;<% } %>
             <%= t.status %>

@@ -284,8 +284,7 @@
       </div>
 
       
- <!-- tournament-container-->
-      <h3 class="section-title">Available Tournaments</h3>
+ <h3 class="section-title">Available Tournaments</h3>
 <%
 const registeredIds = registered.map(r => r.tournament_id);
 %>
@@ -293,7 +292,7 @@ const registeredIds = registered.map(r => r.tournament_id);
 
   <% tournaments.forEach(t => { %>
 
-    <div class="tournament-card">
+    <div class="tournament-card" onclick="window.location.href='/tournaments/<%= t.id %>'" style="cursor:pointer;">
 
       <div class="tournament-header">
         <h4><%= t.name %></h4>
@@ -305,9 +304,9 @@ const registeredIds = registered.map(r => r.tournament_id);
       <div class="t-footer">
 
         <% if (registeredIds.includes(t.id)) { %>
-          <button class="join-btn joined">✓ Joined</button>
+          <button class="join-btn joined" onclick="event.stopPropagation()">✓ Joined</button>
         <% } else { %>
-          <form action="/tournaments/<%= t.id %>/register" method="POST">
+          <form action="/tournaments/<%= t.id %>/register" method="POST" onclick="event.stopPropagation()">
             <button class="join-btn">Join Tournament</button>
           </form>
         <% } %>
@@ -319,7 +318,6 @@ const registeredIds = registered.map(r => r.tournament_id);
   <% }) %>
 
 </div>
-
 
 
     </div>

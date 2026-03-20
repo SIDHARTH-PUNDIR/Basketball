@@ -7,6 +7,7 @@ import session from "express-session";
 import { Strategy } from "passport-local";
 import dotenv from "dotenv";
 import multer from "multer";
+import path from "path";
 import { createServer } from "http";
 import { Server } from "socket.io";
 
@@ -34,12 +35,15 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "public/assets/players");
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname);
-  },
+ destination: (req, file, cb) => {
+  if (req.originalUrl.includes("tournaments")) {
+    cb(null, "public/assets/tournaments/");
+  } else if (req.originalUrl.includes("add-player")) {
+    cb(null, "public/assets/players/");
+  } else {
+    cb(null, "public/assets/");
+  }
+},
 });
 
 const upload = multer({ storage });
@@ -61,19 +65,29 @@ db.connect();
 /* =========================
    GLOBAL MIDDLEWARE
 ========================= */
-
-app.use((req, res, next) => {
-  res.locals.user = req.user;
-  next();
-});
-
 app.use(async (req, res, next) => {
+  res.locals.user = req.user;
   try {
-    const matches = await db.query("SELECT * FROM matches ORDER BY id ASC");
+    const matches = await db.query(`
+      SELECT * FROM tournament_matches
+      ORDER BY 
+        CASE 
+          WHEN status = 'LIVE' THEN 1
+          WHEN match_date = CURRENT_DATE THEN 2
+          WHEN match_date > CURRENT_DATE THEN 3
+          ELSE 4
+        END,
+        match_date ASC
+      LIMIT 4
+    `);
+
     res.locals.matches = matches.rows;
+
   } catch (err) {
+    console.log("MATCH LOAD ERROR:", err);
     res.locals.matches = [];
   }
+
   next();
 });
 
@@ -102,6 +116,12 @@ app.get("/admin", (req, res) => {
   }
 
   res.render("pages/admin");
+});
+
+app.get("/tournaments/create", (req, res) => {
+  if (!req.isAuthenticated()) return res.redirect("/login");
+
+  res.render("pages/create-tournament");
 });
 
 /* =========================
@@ -166,7 +186,9 @@ app.post("/login", (req, res, next) => {
 ========================= */
 
 app.get("/dashboard", async (req, res) => {
-  if (!req.isAuthenticated()) return res.redirect("/login");
+ if (!req.isAuthenticated() || req.user.is_admin) {
+    return res.redirect("/");
+  }
 
   try {
     const players = await db.query(
@@ -204,11 +226,24 @@ app.get("/add-player", (req, res) => {
   if (!req.isAuthenticated()) return res.redirect("/login");
   res.render("pages/add-player");
 });
-
 app.post("/add-player", upload.single("image"), async (req, res) => {
+
+  if (!req.isAuthenticated()) {
+    return res.redirect("/login");
+  }
+
+  if (!req.file) {
+    console.log("❌ No file uploaded");
+    return res.send("Image upload failed");
+  }
+
   const { name, role, position } = req.body;
   const team = req.user.team;
+
   const image = "/assets/players/" + req.file.filename;
+
+  console.log("✅ FILE:", req.file);
+  console.log("✅ USER:", req.user);
 
   try {
     await db.query(
@@ -222,7 +257,6 @@ app.post("/add-player", upload.single("image"), async (req, res) => {
     console.log(err);
   }
 });
-
 /* =========================
    REMOVE PLAYER
 ========================= */
@@ -247,60 +281,78 @@ app.post("/remove-player/:id", async (req, res) => {
 
 app.get("/live", async (req, res) => {
   try {
-    const liveMatch = await db.query(
-      "SELECT id FROM matches WHERE status='LIVE' ORDER BY id ASC LIMIT 1"
+    // 1️⃣ LIVE
+    let result = await db.query(
+      "SELECT id FROM tournament_matches WHERE status='LIVE' LIMIT 1"
     );
 
-    if (liveMatch.rows.length > 0) {
-      return res.redirect(`/live/${liveMatch.rows[0].id}`);
+    if (result.rows.length > 0) {
+      return res.redirect(`/live/${result.rows[0].id}`);
     }
 
-    const firstMatch = await db.query(
-      "SELECT id FROM matches ORDER BY id ASC LIMIT 1"
-    );
+    // 2️⃣ TODAY
+    result = await db.query(`
+      SELECT id FROM tournament_matches 
+      WHERE match_date = CURRENT_DATE
+      LIMIT 1
+    `);
 
-    if (firstMatch.rows.length > 0) {
-      return res.redirect(`/live/${firstMatch.rows[0].id}`);
+    if (result.rows.length > 0) {
+      return res.redirect(`/live/${result.rows[0].id}`);
     }
 
-    res.redirect("/");
+    // 3️⃣ ANY MATCH (🔥 FALLBACK)
+    result = await db.query(`
+      SELECT id FROM tournament_matches 
+      ORDER BY id ASC LIMIT 1
+    `);
+
+    if (result.rows.length > 0) {
+      return res.redirect(`/live/${result.rows[0].id}`);
+    }
+
+    res.send("No matches available");
 
   } catch (err) {
     console.log(err);
-    res.redirect("/");
+    res.send("Error loading live page");
   }
 });
-
 app.get("/live/:matchId", async (req, res) => {
   const matchId = req.params.matchId;
 
   try {
-    const matchResult = await db.query(
-      "SELECT * FROM matches WHERE id=$1", [matchId]
-    );
+   const matchResult = await db.query(
+  "SELECT * FROM tournament_matches WHERE id=$1",
+  [matchId]
+);
+
     const match = matchResult.rows[0];
 
-    const result = await db.query(
-      "SELECT * FROM players WHERE LOWER(team)=LOWER($1) ORDER BY id ASC",
+    // ✅ Fetch both teams
+    const teamAPlayers = await db.query(
+      "SELECT * FROM players WHERE LOWER(team)=LOWER($1)",
       [match.teama]
     );
-    const players = result.rows;
 
-    const team = match.teama;
+    const teamBPlayers = await db.query(
+      "SELECT * FROM players WHERE LOWER(team)=LOWER($1)",
+      [match.teamb]
+    );
 
-    console.log("MATCH TEAM:", match.teama);
-    console.log("PLAYERS FOUND:", players.length);
+    console.log("TEAM A:", teamAPlayers.rows.length);
+    console.log("TEAM B:", teamBPlayers.rows.length);
 
     res.render("pages/live", {
       matchId,
-      players,
-      team,
       match,
-      baseUrl: `${req.protocol}://${req.get('host')}`
+      teamAPlayers: teamAPlayers.rows,
+      teamBPlayers: teamBPlayers.rows
     });
 
   } catch (err) {
-    console.log(err);
+    console.log("LIVE PAGE ERROR:", err);
+    res.send("Error loading live page");
   }
 });
 
@@ -393,10 +445,61 @@ io.on("connection", (socket) => {
     console.log(`New event: match ${matchId} → [${type}] ${text}`);
   });
 
+ socket.on("update_clock", ({ matchId, time, quarter, running }) => {
+  io.emit(`clock_${matchId}`, { time, quarter, running });
+  console.log(`Clock updated: ${time} ${quarter} running=${running}`);
+});
+socket.on("update_player_stats", ({ matchId, playerId, points, fouls, assists, rebounds }) => {
+  io.emit(`player_stats_${matchId}`, { playerId, points, fouls, assists, rebounds });
+  console.log(`Player stats updated: match ${matchId} player ${playerId}`);
+});
   socket.on("disconnect", () => {
     console.log("Client disconnected:", socket.id);
   });
 });
+
+
+
+
+
+/* =========================
+   PLAYERS API (for admin panel)
+========================= */
+app.get("/api/match/:id/players", async (req, res) => {
+  const matchId = req.params.id;
+
+  try {
+    // Get the match to find team names
+    const matchResult = await db.query(
+  "SELECT * FROM tournament_matches WHERE id=$1",
+  [matchId]
+);
+
+    if (matchResult.rows.length === 0) {
+      return res.json([]);
+    }
+
+    const match = matchResult.rows[0];
+
+    // Fetch players from both teams
+    const players = await db.query(
+      `SELECT id, name, position, team 
+       FROM players 
+       WHERE LOWER(team) = LOWER($1) OR LOWER(team) = LOWER($2)
+       ORDER BY team, id ASC`,
+      [match.teama, match.teamb]
+    );
+
+    res.json(players.rows);
+
+  } catch (err) {
+    console.log("PLAYERS API ERROR:", err);
+    res.json([]);
+  }
+});
+
+
+
 
 /* =========================
    TOURNAMENTS
@@ -407,9 +510,10 @@ app.get("/tournaments", async (req, res) => {
     const result = await db.query(
       "SELECT * FROM tournaments ORDER BY start_date ASC"
     );
-    res.render("pages/tournaments", {
-      tournaments: result.rows
-    });
+   res.render("pages/tournaments", {
+  tournaments: result.rows,
+  user: req.user   // ADD THIS
+});
   } catch (err) {
     console.log(err);
   }
@@ -426,11 +530,22 @@ app.get("/tournaments/:id", async (req, res) => {
       "SELECT * FROM tournament_teams WHERE tournament_id=$1 ORDER BY registered_at ASC",
       [id]
     );
+    const leaderboard = await db.query(
+  `SELECT * FROM tournament_teams
+   WHERE tournament_id=$1
+   ORDER BY points DESC, wins DESC`,
+  [id]
+);
+    let matches = { rows: [] };
 
-    const matches = await db.query(
-      "SELECT * FROM tournament_matches WHERE tournament_id=$1 ORDER BY match_date ASC",
-      [id]
-    );
+// 🔥 ONLY LOAD MATCHES IF TEAMS EXIST
+if (teams.rows.length > 0) {
+  matches = await db.query(
+    "SELECT * FROM tournament_matches WHERE tournament_id=$1 ORDER BY match_date ASC",
+    [id]
+  );
+}
+    const users = await db.query("SELECT id, team FROM users ORDER BY team ASC");
 
     // Check if logged-in user's team is already registered
     let isRegistered = false;
@@ -442,12 +557,15 @@ app.get("/tournaments/:id", async (req, res) => {
       isRegistered = check.rows.length > 0;
     }
 
-    res.render("pages/tournament-detail", {
-      tournament: tournament.rows[0],
-      teams: teams.rows,
-      matches: matches.rows,
-      isRegistered
-    });
+   res.render("pages/tournament-detail", {
+  tournament: tournament.rows[0],
+  teams: teams.rows,
+  matches: matches.rows,
+  isRegistered,
+  user: req.user,
+  users: users.rows ,  // ✅ THIS WAS MISSING
+   leaderboard: leaderboard.rows 
+});
 
   } catch (err) {
     console.log(err);
@@ -481,6 +599,7 @@ app.post("/tournaments/:id/register", async (req, res) => {
 });
 app.post("/admin/generate-fixtures/:tournamentId", async (req, res) => {
   const { tournamentId } = req.params;
+  const { type } = req.body;
 
   try {
     const teams = await db.query(
@@ -490,25 +609,340 @@ app.post("/admin/generate-fixtures/:tournamentId", async (req, res) => {
 
     const teamList = teams.rows;
 
-    // Round robin — every team plays every other team
-    for (let i = 0; i < teamList.length; i++) {
-      for (let j = i + 1; j < teamList.length; j++) {
-        await db.query(
-          `INSERT INTO tournament_matches 
-           (tournament_id, teama, teamb, status, round) 
-           VALUES ($1, $2, $3, 'UPCOMING', 'GROUP')`,
-          [tournamentId, teamList[i].team_name, teamList[j].team_name]
-        );
+    // ❌ delete old fixtures first
+    await db.query(
+      "DELETE FROM tournament_matches WHERE tournament_id=$1",
+      [tournamentId]
+    );
+
+    // =========================
+    // 🟠 ROUND ROBIN
+    // =========================
+    if (type === "round") {
+      for (let i = 0; i < teamList.length; i++) {
+        for (let j = i + 1; j < teamList.length; j++) {
+          await db.query(
+            `INSERT INTO tournament_matches 
+             (tournament_id, teama, teamb, status, round) 
+             VALUES ($1, $2, $3, 'UPCOMING', 'GROUP')`,
+            [tournamentId, teamList[i].team_name, teamList[j].team_name]
+          );
+        }
       }
     }
 
-    res.redirect("/admin");
+    // =========================
+    // 🔴 KNOCKOUT
+    // =========================
+    else if (type === "knockout") {
+
+      if (teamList.length < 4) {
+        return res.redirect(`/tournaments/${tournamentId}`);
+      }
+
+      // shuffle teams
+      const shuffled = teamList.sort(() => 0.5 - Math.random());
+
+      // SEMI FINALS
+      await db.query(
+        `INSERT INTO tournament_matches 
+         (tournament_id, teama, teamb, status, round) 
+         VALUES ($1,$2,$3,'UPCOMING','SEMI FINAL')`,
+        [tournamentId, shuffled[0].team_name, shuffled[1].team_name]
+      );
+
+      await db.query(
+        `INSERT INTO tournament_matches 
+         (tournament_id, teama, teamb, status, round) 
+         VALUES ($1,$2,$3,'UPCOMING','SEMI FINAL')`,
+        [tournamentId, shuffled[2].team_name, shuffled[3].team_name]
+      );
+
+      // FINAL placeholder
+      await db.query(
+        `INSERT INTO tournament_matches 
+         (tournament_id, teama, teamb, status, round) 
+         VALUES ($1,'TBD','TBD','UPCOMING','FINAL')`,
+        [tournamentId]
+      );
+    }
+
+    res.redirect(`/tournaments/${tournamentId}`);
 
   } catch (err) {
     console.log(err);
     res.redirect("/admin");
   }
 });
+
+
+/* =========================
+   CREATE TOURNAMENT
+========================= */
+
+app.post("/tournaments/create", upload.single("image"), async (req, res) => {
+  if (!req.isAuthenticated()) return res.redirect("/login");
+
+  const { name, location, start_date, end_date, max_teams } = req.body;
+
+  const imagePath = req.file
+    ? "/assets/tournaments/" + req.file.filename
+    : "/assets/tournaments/default.png";
+
+  try {
+    await db.query(
+      `INSERT INTO tournaments 
+       (name, location, start_date, end_date, max_teams, status, image, created_by) 
+       VALUES ($1,$2,$3,$4,$5,'UPCOMING',$6,$7)`,
+      [
+        name,
+        location,
+        start_date,
+        end_date,
+        max_teams,
+        imagePath,
+        req.user.id
+      ]
+    );
+
+    res.redirect("/tournaments");
+
+  } catch (err) {
+    console.log("CREATE TOURNAMENT ERROR:", err);
+    res.redirect("/tournaments");
+  }
+});
+/* =========================
+   DELETE TOURNAMENT
+========================= */
+
+app.post("/tournaments/:id/delete", async (req, res) => {
+  const { id } = req.params;
+
+  if (!req.isAuthenticated()) return res.redirect("/login");
+
+  try {
+    const result = await db.query(
+      "SELECT * FROM tournaments WHERE id=$1",
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.redirect("/tournaments");
+    }
+
+    const tournament = result.rows[0];
+
+    if (req.user.is_admin || req.user.id === tournament.created_by) {
+
+      // delete related data first
+      await db.query(
+        "DELETE FROM tournament_teams WHERE tournament_id=$1",
+        [id]
+      );
+
+      await db.query(
+        "DELETE FROM tournament_matches WHERE tournament_id=$1",
+        [id]
+      );
+
+      await db.query(
+        "DELETE FROM tournaments WHERE id=$1",
+        [id]
+      );
+    }
+
+    res.redirect("/tournaments");
+
+  } catch (err) {
+    console.log("DELETE TOURNAMENT ERROR:", err);
+    res.redirect("/tournaments");
+  }
+});/* =========================
+   ADD TEAM (SAFE)
+========================= */
+app.post("/tournaments/:id/add-team", async (req, res) => {
+  const { id } = req.params;
+  const { team_id } = req.body;
+
+  if (!req.isAuthenticated()) return res.redirect("/login");
+
+  try {
+    const result = await db.query(
+      "SELECT * FROM tournaments WHERE id=$1",
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.redirect("/tournaments");
+    }
+
+    const tournament = result.rows[0];
+
+    if (req.user.is_admin || req.user.id === tournament.created_by) {
+
+      // 🔥 GET TEAM NAME FROM USERS TABLE
+      const teamData = await db.query(
+        "SELECT team FROM users WHERE id=$1",
+        [team_id]
+      );
+
+      if (teamData.rows.length === 0) {
+        return res.redirect(`/tournaments/${id}`);
+      }
+
+      const teamName = teamData.rows[0].team;
+
+      // ✅ PREVENT DUPLICATE
+      const check = await db.query(
+        "SELECT * FROM tournament_teams WHERE tournament_id=$1 AND LOWER(team_name)=LOWER($2)",
+        [id, teamName]
+      );
+
+      if (check.rows.length === 0) {
+        await db.query(
+          "INSERT INTO tournament_teams (tournament_id, team_name) VALUES ($1,$2)",
+          [id, teamName]
+        );
+      }
+    }
+
+    res.redirect(`/tournaments/${id}`);
+
+  } catch (err) {
+    console.log("ADD TEAM ERROR:", err);
+    res.redirect(`/tournaments/${id}`);
+  }
+});
+/* =========================
+   REMOVE TEAM (FIXED)
+========================= */
+app.post("/tournaments/:tid/remove-team/:teamId", async (req, res) => {
+  const { tid, teamId } = req.params;
+
+  if (!req.isAuthenticated()) return res.redirect("/login");
+
+  try {
+    // 1. Verify the tournament exists and the user has permission
+    const tournamentResult = await db.query(
+      "SELECT * FROM tournaments WHERE id=$1",
+      [tid]
+    );
+
+    if (tournamentResult.rows.length === 0) return res.redirect("/tournaments");
+
+    const tournament = tournamentResult.rows[0];
+
+   if (true) {
+      
+      // 2. Delete the team registration
+      await db.query(
+        "DELETE FROM tournament_teams WHERE id=$1 AND tournament_id=$2",
+        [teamId, tid]
+      );
+
+      // 3. FORCE DELETE ALL FIXTURES
+      // Since the team list has changed, the old schedule is invalid.
+      await db.query(
+        "DELETE FROM tournament_matches WHERE tournament_id=$1",
+        [tid]
+      );
+      
+      console.log(`Cleared teams and fixtures for tournament ${tid}`);
+    }
+
+    res.redirect(`/tournaments/${tid}`);
+
+  } catch (err) {
+    console.error("REMOVE TEAM ERROR:", err);
+    res.redirect(`/tournaments/${tid}`);
+  }
+});
+
+/* =========================
+    UPDATE MATCH RESULT
+========================= */
+
+app.post("/matches/:id/result", async (req, res) => {
+  const { id } = req.params;
+  const { scoreA, scoreB } = req.body;
+
+  try {
+    const match = await db.query(
+      "SELECT * FROM tournament_matches WHERE id=$1",
+      [id]
+    );
+
+    const m = match.rows[0];
+
+    let winner, loser;
+
+    if (scoreA > scoreB) {
+      winner = m.teama;
+      loser = m.teamb;
+    } else {
+      winner = m.teamb;
+      loser = m.teama;
+    }
+
+    // ✅ update match
+    await db.query(
+      "UPDATE tournament_matches SET scorea=$1, scoreb=$2, status='FINAL', winner=$3 WHERE id=$4",
+      [scoreA, scoreB, winner, id]
+    );
+    // =========================
+// 🔴 SEMI → FINAL AUTO UPDATE
+// =========================
+if (m.round === "SEMI FINAL") {
+
+  const semis = await db.query(
+    "SELECT * FROM tournament_matches WHERE tournament_id=$1 AND round='SEMI FINAL'",
+    [m.tournament_id]
+  );
+
+  const finished = semis.rows.filter(x => x.status === "FINAL");
+
+  if (finished.length === 2) {
+    const winner1 = finished[0].winner;
+    const winner2 = finished[1].winner;
+
+    await db.query(
+      `UPDATE tournament_matches 
+       SET teama=$1, teamb=$2 
+       WHERE tournament_id=$3 AND round='FINAL'`,
+      [winner1, winner2, m.tournament_id]
+    );
+  }
+}
+
+    // ✅ update winner
+    await db.query(
+      `UPDATE tournament_teams 
+       SET wins = wins + 1,
+           matches_played = matches_played + 1,
+           points = points + 2
+       WHERE tournament_id=$1 AND team_name=$2`,
+      [m.tournament_id, winner]
+    );
+
+    // ✅ update loser
+    await db.query(
+      `UPDATE tournament_teams 
+       SET losses = losses + 1,
+           matches_played = matches_played + 1
+       WHERE tournament_id=$1 AND team_name=$2`,
+      [m.tournament_id, loser]
+    );
+
+    res.redirect(`/tournaments/${m.tournament_id}`);
+
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+
+
 
 
 
@@ -533,6 +967,49 @@ app.get("/news", (req, res) => {
 });
 
 
+
+
+
+/* =========================
+ Standings
+========================= */
+app.get("/standings", async (req, res) => {
+  try {
+    const tournamentsResult = await db.query(`
+      SELECT id, name FROM tournaments ORDER BY name ASC
+    `);
+    const tournaments = tournamentsResult.rows;
+
+    // JOIN to get tournament name alongside each match
+    const matchesResult = await db.query(`
+      SELECT m.*, t.name AS tournament_name
+      FROM tournament_matches m
+      LEFT JOIN tournaments t ON t.id = m.tournament_id
+      ORDER BY m.tournament_id ASC, m.match_date ASC NULLS LAST, m.round ASC
+    `);
+    const allMatches = matchesResult.rows;
+
+    const matchesByTournament = {};
+    tournaments.forEach(t => { matchesByTournament[t.id] = []; });
+    allMatches.forEach(m => {
+      if (matchesByTournament[m.tournament_id]) {
+        matchesByTournament[m.tournament_id].push(m);
+      }
+    });
+
+    res.render("pages/standings", {
+      tournaments,
+      allMatches,
+      matchesByTournament,
+      totalMatches: allMatches.length,
+      user: req.user,
+    });
+
+  } catch (err) {
+    console.error("[/standings]", err.message);
+    res.status(500).send(`Error: ${err.message}`);
+  }
+});
 httpServer.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });

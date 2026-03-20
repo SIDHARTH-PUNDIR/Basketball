@@ -2,7 +2,6 @@
 <html>
 <head>
   <title>Admin Panel</title>
-
   <style>
     body {
       background: #060810;
@@ -11,23 +10,16 @@
       padding: 40px;
     }
 
-    h1 {
-      margin-bottom: 10px;
-    }
+    h1 { margin-bottom: 10px; }
 
-    .status {
-      color: #00ffcc;
-      margin-bottom: 20px;
-    }
+    .status { color: #00ffcc; margin-bottom: 20px; }
 
-    /* GRID */
     .admin-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
       gap: 20px;
     }
 
-    /* CARD */
     .card {
       background: #111827;
       padding: 25px;
@@ -35,10 +27,7 @@
       border: 1px solid #1e2030;
     }
 
-    h2 {
-      color: #ff7a18;
-      margin-bottom: 10px;
-    }
+    h2 { color: #ff7a18; margin-bottom: 10px; }
 
     input, select {
       background: #0d1325;
@@ -48,6 +37,7 @@
       border-radius: 8px;
       margin-top: 10px;
       width: 100%;
+      box-sizing: border-box;
     }
 
     button {
@@ -62,15 +52,70 @@
       font-weight: bold;
     }
 
-    button:hover {
-      background: #ff8f2f;
+    button:hover { background: #ff8f2f; }
+
+    .btn-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
     }
 
-    .score-display {
-      margin-top: 10px;
+    .btn-green  { background: #00c46a; }
+    .btn-yellow { background: #f0a500; }
+    .btn-red    { background: #e03e3e; }
+
+    .btn-green:hover  { background: #00d97a; }
+    .btn-yellow:hover { background: #ffb820; }
+    .btn-red:hover    { background: #f05050; }
+
+    .clock-display {
+      font-size: 28px;
+      font-weight: bold;
+      text-align: center;
+      margin-top: 14px;
+      color: #00ffcc;
+      letter-spacing: 3px;
+    }
+
+    .clock-status {
+      text-align: center;
+      font-size: 12px;
+      margin-top: 6px;
       color: #aaa;
     }
 
+    .score-display { margin-top: 10px; color: #aaa; }
+
+    .stat-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .stat-row input { margin-top: 0; }
+
+    label {
+      font-size: 11px;
+      color: #888;
+      margin-top: 12px;
+      display: block;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: #00c46a;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-weight: bold;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+
+    .toast.show { opacity: 1; }
   </style>
 </head>
 
@@ -84,8 +129,7 @@
     <!-- SELECT MATCH -->
     <div class="card">
       <h2>Select Match</h2>
-
-      <select id="matchId">
+      <select id="matchId" onchange="onMatchChange()">
         <% matches.forEach(match => { %>
           <option value="<%= match.id %>">
             <%= match.teama %> vs <%= match.teamb %>
@@ -97,15 +141,39 @@
     <!-- UPDATE SCORE -->
     <div class="card">
       <h2>Update Score</h2>
-
       <input id="scoreA" type="number" placeholder="Team A Score">
       <input id="scoreB" type="number" placeholder="Team B Score">
-
       <button onclick="updateScore()">Update Score</button>
+      <p id="currentScore" class="score-display">Current Score: --</p>
+    </div>
 
-      <p id="currentScore" class="score-display">
-        Current Score: --
-      </p>
+    <!-- CLOCK CONTROL -->
+    <div class="card">
+      <h2>⏱ Clock Control</h2>
+
+      <div class="stat-row">
+        <div>
+          <label>Time (MM:SS)</label>
+          <input id="clockTime" placeholder="10:00">
+        </div>
+        <div>
+          <label>Quarter</label>
+          <input id="clockQuarter" placeholder="Q1">
+        </div>
+      </div>
+
+      <div class="clock-display" id="adminClockDisplay">10:00</div>
+      <div class="clock-status" id="clockStatus">⏸ Stopped</div>
+
+      <div class="btn-row" style="margin-top:14px;">
+        <button class="btn-green"  onclick="clockAction('start')">▶ Start</button>
+        <button class="btn-yellow" onclick="clockAction('pause')">⏸ Pause</button>
+        <button class="btn-red"    onclick="clockAction('stop')">⏹ Stop</button>
+      </div>
+
+      <button onclick="setClock()" style="margin-top:10px; background:#1e3a5f;">
+        Set Time & Quarter
+      </button>
     </div>
 
     <!-- ADD EVENT -->
@@ -133,55 +201,211 @@
       <button onclick="addEvent()">Add Event</button>
     </div>
 
+    <!-- PLAYER STATS -->
+    <div class="card">
+      <h2>Update Player Stats</h2>
+
+      <label>Select Match</label>
+      <select id="statsMatch" onchange="loadPlayers()">
+        <% matches.forEach(match => { %>
+          <option value="<%= match.id %>">
+            <%= match.teama %> vs <%= match.teamb %>
+          </option>
+        <% }) %>
+      </select>
+
+      <label>Select Player</label>
+      <select id="statsPlayer">
+        <option value="">-- select match first --</option>
+      </select>
+
+      <div class="stat-row" style="margin-top:12px;">
+        <div>
+          <label>Points</label>
+          <input id="statPoints" type="number" placeholder="0" min="0">
+        </div>
+        <div>
+          <label>Fouls</label>
+          <input id="statFouls" type="number" placeholder="0" min="0">
+        </div>
+        <div>
+          <label>Assists</label>
+          <input id="statAssists" type="number" placeholder="0" min="0">
+        </div>
+        <div>
+          <label>Rebounds</label>
+          <input id="statRebounds" type="number" placeholder="0" min="0">
+        </div>
+      </div>
+
+      <button onclick="updatePlayerStats()">Update Player Stats</button>
+    </div>
+
   </div>
 
-  <!-- SOCKET.IO -->
-  <script src="/socket.io/socket.io.js"></script>
+  <!-- TOAST -->
+  <div class="toast" id="toast">✅ Done!</div>
 
+  <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();
 
-    // UPDATE SCORE
+    // ── Toast helper ──
+    function showToast(msg = "✅ Done!") {
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.classList.add("show");
+      setTimeout(() => t.classList.remove("show"), 2500);
+    }
+
+    // ── Score ──
     function updateScore() {
       const matchId = document.getElementById("matchId").value;
-      const scorea = document.getElementById("scoreA").value;
-      const scoreb = document.getElementById("scoreB").value;
-
-      if (!scorea || !scoreb) {
-        alert("Enter both scores");
-        return;
-      }
-
+      const scorea  = document.getElementById("scoreA").value;
+      const scoreb  = document.getElementById("scoreB").value;
+      if (!scorea || !scoreb) { alert("Enter both scores"); return; }
       socket.emit("update_score", { matchId, scorea, scoreb });
-
-      document.getElementById("currentScore").innerText =
-        `Current Score: ${scorea} - ${scoreb}`;
-
-      // Clear inputs
+      document.getElementById("currentScore").innerText = `Current Score: ${scorea} - ${scoreb}`;
       document.getElementById("scoreA").value = "";
       document.getElementById("scoreB").value = "";
+      showToast("✅ Score updated!");
     }
 
-    // ADD EVENT
+    // ── Clock ──
+    let localClock   = null;
+    let clockSecs    = 600;
+    let clockRunning = false;
+
+    function formatClock(s) {
+      const m = Math.floor(s / 60).toString().padStart(2, "0");
+      const sec = (s % 60).toString().padStart(2, "0");
+      return `${m}:${sec}`;
+    }
+
+    // Set time & quarter without starting
+    function setClock() {
+      const time    = document.getElementById("clockTime").value.trim();
+      const quarter = document.getElementById("clockQuarter").value.trim();
+      if (!time || !quarter) { alert("Enter time and quarter"); return; }
+
+      const parts = time.split(":").map(Number);
+      clockSecs   = (parts[0] * 60) + (parts[1] || 0);
+
+      document.getElementById("adminClockDisplay").textContent = formatClock(clockSecs);
+
+      // Push to clients but NOT running
+      const matchId = document.getElementById("matchId").value;
+      socket.emit("update_clock", { matchId, time: formatClock(clockSecs), quarter, running: false });
+      showToast("🕐 Clock set to " + formatClock(clockSecs));
+    }
+
+    function clockAction(action) {
+      const matchId = document.getElementById("matchId").value;
+      const quarter = document.getElementById("clockQuarter").value.trim() || "Q1";
+
+      if (action === "start") {
+        if (clockRunning) return;
+        clockRunning = true;
+        document.getElementById("clockStatus").textContent = "▶ Running";
+
+        localClock = setInterval(() => {
+          if (clockSecs > 0) {
+            clockSecs--;
+            const formatted = formatClock(clockSecs);
+            document.getElementById("adminClockDisplay").textContent = formatted;
+            // Emit every second so clients stay in sync
+            socket.emit("update_clock", { matchId, time: formatted, quarter, running: true });
+          } else {
+            clearInterval(localClock);
+            clockRunning = false;
+            document.getElementById("clockStatus").textContent = "⏹ Time Up";
+            socket.emit("update_clock", { matchId, time: "00:00", quarter, running: false });
+          }
+        }, 1000);
+
+      } else if (action === "pause") {
+        clearInterval(localClock);
+        clockRunning = false;
+        document.getElementById("clockStatus").textContent = "⏸ Paused";
+        socket.emit("update_clock", {
+          matchId,
+          time: formatClock(clockSecs),
+          quarter,
+          running: false
+        });
+        showToast("⏸ Clock paused");
+
+      } else if (action === "stop") {
+        clearInterval(localClock);
+        clockRunning = false;
+        clockSecs    = 600;
+        document.getElementById("adminClockDisplay").textContent = "10:00";
+        document.getElementById("clockStatus").textContent = "⏹ Stopped";
+        socket.emit("update_clock", { matchId, time: "10:00", quarter, running: false });
+        showToast("⏹ Clock reset");
+      }
+    }
+
+    // ── Play-by-play event ──
     function addEvent() {
       const matchId = document.getElementById("evtMatch").value;
-      const time = document.getElementById("evtTime").value;
-      const text = document.getElementById("evtText").value;
-      const type = document.getElementById("evtType").value;
-
-      if (!time || !text) {
-        alert("Fill all fields");
-        return;
-      }
-
+      const time    = document.getElementById("evtTime").value;
+      const text    = document.getElementById("evtText").value;
+      const type    = document.getElementById("evtType").value;
+      if (!time || !text) { alert("Fill all fields"); return; }
       socket.emit("new_event", { matchId, time, text, type });
-
-      // Clear inputs
       document.getElementById("evtTime").value = "";
       document.getElementById("evtText").value = "";
-
-      alert("Event added!");
+      showToast("📋 Event added!");
     }
+
+    // ── Player stats ──
+    // Fetches players for selected match and populates dropdown
+    async function loadPlayers() {
+      const matchId = document.getElementById("statsMatch").value;
+      const sel     = document.getElementById("statsPlayer");
+      sel.innerHTML = '<option value="">Loading...</option>';
+
+      try {
+        const res  = await fetch(`/api/match/${matchId}/players`);
+        const data = await res.json();  // expects [{ id, name, team }, ...]
+        sel.innerHTML = data.map(p =>
+          `<option value="${p.id}">${p.name} (${p.team})</option>`
+        ).join("");
+      } catch(e) {
+        sel.innerHTML = '<option value="">Error loading players</option>';
+      }
+    }
+
+    function updatePlayerStats() {
+      const matchId  = document.getElementById("statsMatch").value;
+      const playerId = document.getElementById("statsPlayer").value;
+      const points   = parseInt(document.getElementById("statPoints").value)   || 0;
+      const fouls    = parseInt(document.getElementById("statFouls").value)    || 0;
+      const assists  = parseInt(document.getElementById("statAssists").value)  || 0;
+      const rebounds = parseInt(document.getElementById("statRebounds").value) || 0;
+
+      if (!playerId) { alert("Select a player"); return; }
+
+      socket.emit("update_player_stats", { matchId, playerId, points, fouls, assists, rebounds });
+      showToast("✅ Player stats updated!");
+
+      // Clear
+      document.getElementById("statPoints").value   = "";
+      document.getElementById("statFouls").value    = "";
+      document.getElementById("statAssists").value  = "";
+      document.getElementById("statRebounds").value = "";
+    }
+
+    function onMatchChange() {
+      // sync evtMatch dropdown too
+      const val = document.getElementById("matchId").value;
+      document.getElementById("evtMatch").value   = val;
+      document.getElementById("statsMatch").value = val;
+    }
+
+    // Load players on first load
+    loadPlayers();
   </script>
 
 </body>

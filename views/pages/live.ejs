@@ -51,205 +51,257 @@
   </div>
 
   <!-- MAIN CONTENT -->
-  <div class="live-body">
+  <div class="live-layout">
 
-    <!-- LEFT: COURT -->
-    <div class="court-panel">
+    <!-- LEFT TEAM -->
+    <div class="team-panel left-team">
       <div class="panel-header">
-        <span class="panel-label">Court Positions</span>
-        <% if (team) { %>
-          <span class="panel-tag"><%= team %></span>
-        <% } %>
+        <span class="panel-label">Roster</span>
+        <span class="panel-tag"><%= match.teama %></span>
       </div>
+      <div class="roster-list">
+  <% teamAPlayers.forEach((player, i) => { %>
+    <div class="roster-card" 
+         data-points="<%= player.points || 0 %>"
+         data-fouls="<%= player.fouls || 0 %>"
+         data-assists="<%= player.assists || 0 %>"
+         data-rebounds="<%= player.rebounds || 0 %>">
+      <div class="roster-num">#<%= i + 1 %></div>
+      <img class="roster-img" src="<%= player.image %>" alt="<%= player.name %>" />
+      <div class="roster-info">
+        <div class="roster-name"><%= player.name %></div>
+        <div class="roster-pos"><%= player.position %></div>
+      </div>
+      <div class="player-tooltip">
+        <div class="tooltip-row"><span>PTS</span><span><%= player.points || 0 %></span></div>
+        <div class="tooltip-row"><span>AST</span><span><%= player.assists || 0 %></span></div>
+        <div class="tooltip-row"><span>REB</span><span><%= player.rebounds || 0 %></span></div>
+        <div class="tooltip-row foul-row"><span>FOULS</span><span><%= player.fouls || 0 %></span></div>
+      </div>
+    </div>
+  <% }) %>
+</div>
+    </div>
 
-      <div class="court-wrap">
-        <svg class="court-svg" viewBox="0 0 800 430" xmlns="http://www.w3.org/2000/svg">
+    <!-- CENTER -->
+    <div class="center-panel">
 
-          <!-- COURT BACKGROUND -->
-          <rect width="800" height="430" rx="14" fill="#0d1525"/>
-          <rect x="18" y="18" width="764" height="394" rx="8"
-            fill="none" stroke="#1e3a5f" stroke-width="2"/>
-          <line x1="400" y1="18" x2="400" y2="412" stroke="#1e3a5f" stroke-width="2"/>
-          <circle cx="400" cy="215" r="60" fill="none" stroke="#1e3a5f" stroke-width="2"/>
-          <circle cx="400" cy="215" r="5" fill="#1e3a5f"/>
-
-          <!-- LEFT SIDE (HOME) -->
-          <rect x="18" y="137" width="170" height="156"
-            fill="rgba(255,122,24,0.05)" stroke="#1e3a5f" stroke-width="2"/>
-          <path d="M 188 137 A 60 60 0 0 1 188 293"
-            fill="none" stroke="#1e3a5f" stroke-width="2"/>
-          <path d="M 188 137 A 60 60 0 0 0 188 293"
-            fill="none" stroke="#1e3a5f" stroke-width="2" stroke-dasharray="6,5"/>
-          <path d="M 55 185 A 40 40 0 0 1 55 245"
-            fill="none" stroke="#1e3a5f" stroke-width="1.5" stroke-dasharray="4,4"/>
-          <line x1="18" y1="90"  x2="68" y2="90"  stroke="#1e3a5f" stroke-width="2"/>
-          <line x1="18" y1="340" x2="68" y2="340" stroke="#1e3a5f" stroke-width="2"/>
-          <path d="M 68 90 Q 310 215 68 340" fill="none" stroke="#1e3a5f" stroke-width="2"/>
-          <line x1="28" y1="193" x2="28" y2="237" stroke="#ff7a18" stroke-width="5" stroke-linecap="round"/>
-          <circle cx="62" cy="215" r="11" fill="none" stroke="#ff7a18" stroke-width="2.5"/>
-          <circle cx="62" cy="215" r="15" fill="rgba(255,122,24,0.08)"/>
-
-          <!-- RIGHT SIDE (AWAY) -->
-          <rect x="612" y="137" width="170" height="156"
-            fill="rgba(100,150,255,0.05)" stroke="#1e3a5f" stroke-width="2"/>
-          <path d="M 612 137 A 60 60 0 0 0 612 293"
-            fill="none" stroke="#1e3a5f" stroke-width="2"/>
-          <path d="M 612 137 A 60 60 0 0 1 612 293"
-            fill="none" stroke="#1e3a5f" stroke-width="2" stroke-dasharray="6,5"/>
-          <path d="M 745 185 A 40 40 0 0 0 745 245"
-            fill="none" stroke="#1e3a5f" stroke-width="1.5" stroke-dasharray="4,4"/>
-          <line x1="782" y1="90"  x2="732" y2="90"  stroke="#1e3a5f" stroke-width="2"/>
-          <line x1="782" y1="340" x2="732" y2="340" stroke="#1e3a5f" stroke-width="2"/>
-          <path d="M 732 90 Q 490 215 732 340" fill="none" stroke="#1e3a5f" stroke-width="2"/>
-          <line x1="772" y1="193" x2="772" y2="237" stroke="#6496ff" stroke-width="5" stroke-linecap="round"/>
-          <circle cx="738" cy="215" r="11" fill="none" stroke="#6496ff" stroke-width="2.5"/>
-          <circle cx="738" cy="215" r="15" fill="rgba(100,150,255,0.08)"/>
-
-          <!-- TEAM LABELS -->
-          <text x="100" y="42" text-anchor="middle"
-            font-family="Barlow Condensed, sans-serif"
-            font-size="11" font-weight="700" letter-spacing="3"
-            fill="#ff7a18" opacity="0.6">HOME</text>
-          <text x="700" y="42" text-anchor="middle"
-            font-family="Barlow Condensed, sans-serif"
-            font-size="11" font-weight="700" letter-spacing="3"
-            fill="#6496ff" opacity="0.6">AWAY</text>
+      <!-- COURT -->
+      <div class="court-panel">
+        <div class="panel-header">
+          <span class="panel-label">Court</span>
+        </div>
+        <div class="court-wrap">
 
           <%
             const posMap = {
-              PG: { x: 240, y: 215 },
-              SG: { x: 175, y: 118 },
-              SF: { x: 175, y: 312 },
-              PF: { x: 108, y: 158 },
-              C:  { x: 105, y: 215 }
+              PG: { x: 275, y: 215 },
+              SG: { x: 185, y: 118 },
+              SF: { x: 100, y: 312 },
+              PF: { x: 100, y: 140 },
+              C:  { x: 165, y: 250 }
             };
           %>
 
-          <% if (players && players.length > 0) { %>
+          <svg class="court-svg" viewBox="0 0 800 430" xmlns="http://www.w3.org/2000/svg">
 
-            <!-- ALL CLIP PATHS FIRST -->
+            <!-- COURT BACKGROUND -->
+            <rect width="800" height="430" rx="14" fill="#0d1525"/>
+            <rect x="18" y="18" width="764" height="394" rx="8"
+              fill="none" stroke="#1e3a5f" stroke-width="2"/>
+            <line x1="400" y1="18" x2="400" y2="412" stroke="#1e3a5f" stroke-width="2"/>
+            <circle cx="400" cy="215" r="60" fill="none" stroke="#1e3a5f" stroke-width="2"/>
+            <circle cx="400" cy="215" r="5" fill="#1e3a5f"/>
+
+            <!-- LEFT SIDE (HOME) -->
+            <rect x="18" y="137" width="170" height="156"
+              fill="rgba(255,122,24,0.05)" stroke="#1e3a5f" stroke-width="2"/>
+            <path d="M 188 137 A 60 60 0 0 1 188 293"
+              fill="none" stroke="#1e3a5f" stroke-width="2"/>
+            <path d="M 188 137 A 60 60 0 0 0 188 293"
+              fill="none" stroke="#1e3a5f" stroke-width="2" stroke-dasharray="6,5"/>
+            <path d="M 55 185 A 40 40 0 0 1 55 245"
+              fill="none" stroke="#1e3a5f" stroke-width="1.5" stroke-dasharray="4,4"/>
+            <line x1="18" y1="90"  x2="68" y2="90"  stroke="#1e3a5f" stroke-width="2"/>
+            <line x1="18" y1="340" x2="68" y2="340" stroke="#1e3a5f" stroke-width="2"/>
+            <path d="M 68 90 Q 310 215 68 340" fill="none" stroke="#1e3a5f" stroke-width="2"/>
+            <line x1="28" y1="193" x2="28" y2="237" stroke="#ff7a18" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="62" cy="215" r="11" fill="none" stroke="#ff7a18" stroke-width="2.5"/>
+            <circle cx="62" cy="215" r="15" fill="rgba(255,122,24,0.08)"/>
+
+            <!-- RIGHT SIDE (AWAY) -->
+            <rect x="612" y="137" width="170" height="156"
+              fill="rgba(100,150,255,0.05)" stroke="#1e3a5f" stroke-width="2"/>
+            <path d="M 612 137 A 60 60 0 0 0 612 293"
+              fill="none" stroke="#1e3a5f" stroke-width="2"/>
+            <path d="M 612 137 A 60 60 0 0 1 612 293"
+              fill="none" stroke="#1e3a5f" stroke-width="2" stroke-dasharray="6,5"/>
+            <path d="M 745 185 A 40 40 0 0 0 745 245"
+              fill="none" stroke="#1e3a5f" stroke-width="1.5" stroke-dasharray="4,4"/>
+            <line x1="782" y1="90"  x2="732" y2="90"  stroke="#1e3a5f" stroke-width="2"/>
+            <line x1="782" y1="340" x2="732" y2="340" stroke="#1e3a5f" stroke-width="2"/>
+            <path d="M 732 90 Q 490 215 732 340" fill="none" stroke="#1e3a5f" stroke-width="2"/>
+            <line x1="772" y1="193" x2="772" y2="237" stroke="#6496ff" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="738" cy="215" r="11" fill="none" stroke="#6496ff" stroke-width="2.5"/>
+            <circle cx="738" cy="215" r="15" fill="rgba(100,150,255,0.08)"/>
+
+            <!-- TEAM LABELS -->
+            <text x="100" y="42" text-anchor="middle"
+              font-family="Barlow Condensed, sans-serif"
+              font-size="11" font-weight="700" letter-spacing="3"
+              fill="#ff7a18" opacity="0.6">HOME</text>
+            <text x="700" y="42" text-anchor="middle"
+              font-family="Barlow Condensed, sans-serif"
+              font-size="11" font-weight="700" letter-spacing="3"
+              fill="#6496ff" opacity="0.6">AWAY</text>
+
+            <!-- DEFS (clip paths) — must come before player elements -->
             <defs>
-              <% players.forEach(player => { %>
-                <% const pos = posMap[player.position] || posMap['PG']; %>
-                <clipPath id="clip-<%= player.id %>">
+              <% teamAPlayers.forEach(function(player) {
+                   const pos = posMap[player.position] || posMap['PG'];
+              %>
+                <clipPath id="clip-a-<%= player.id %>">
                   <circle cx="<%= pos.x %>" cy="<%= pos.y %>" r="22"/>
+                </clipPath>
+              <% }) %>
+
+              <% teamBPlayers.forEach(function(player) {
+                   const base = posMap[player.position] || posMap['PG'];
+                   const bx = 800 - base.x;
+                   const by = base.y;
+              %>
+                <clipPath id="clip-b-<%= player.id %>">
+                  <circle cx="<%= bx %>" cy="<%= by %>" r="22"/>
                 </clipPath>
               <% }) %>
             </defs>
 
-            <% players.forEach(player => { %>
-              <% const pos = posMap[player.position] || posMap['PG']; %>
-
-              <!-- Glow ring -->
+            <!-- TEAM A (LEFT / HOME) -->
+            <% teamAPlayers.forEach(function(player) {
+                 const pos = posMap[player.position] || posMap['PG'];
+            %>
               <circle cx="<%= pos.x %>" cy="<%= pos.y %>" r="28"
-                fill="rgba(255,122,24,0.07)"
-                stroke="rgba(255,122,24,0.2)" stroke-width="1"/>
-
-              <!-- Orange border -->
+                fill="rgba(255,122,24,0.07)" stroke="rgba(255,122,24,0.2)"/>
               <circle cx="<%= pos.x %>" cy="<%= pos.y %>" r="24"
                 fill="none" stroke="#ff7a18" stroke-width="2.5"/>
-
-              <!-- Player photo from DB -->
               <image
-                href="http://localhost:3000<%= player.image %>"
+                href="<%= player.image %>"
                 x="<%= pos.x - 22 %>" y="<%= pos.y - 22 %>"
                 width="44" height="44"
-                clip-path="url(#clip-<%= player.id %>)"
+                clip-path="url(#clip-a-<%= player.id %>)"
                 preserveAspectRatio="xMidYMid slice"/>
-
-              <!-- Position badge -->
               <rect x="<%= pos.x - 16 %>" y="<%= pos.y + 26 %>"
                 width="32" height="15" rx="4" fill="#ff7a18"/>
               <text x="<%= pos.x %>" y="<%= pos.y + 37 %>"
-                text-anchor="middle"
-                font-family="Barlow Condensed, sans-serif"
-                font-size="9" font-weight="700" fill="white">
+                text-anchor="middle" font-size="9" fill="white">
                 <%= player.position %>
               </text>
-
-              <!-- Player name -->
-              <text x="<%= pos.x %>" y="<%= pos.y + 54 %>"
-                text-anchor="middle"
-                font-family="Barlow Condensed, sans-serif"
-                font-size="11" font-weight="600" fill="#cbd5e1">
-                <%= player.name.split(' ')[0] %>
-              </text>
-
             <% }) %>
 
-       <% } else { %>
-  <text x="200" y="220" text-anchor="middle"
-    font-family="Barlow Condensed, sans-serif"
-    font-size="13" fill="#2a3a55">
-    No players added for this team yet
-  </text>
-<% } %>
+            <!-- TEAM B (RIGHT / AWAY) -->
+            <% teamBPlayers.forEach(function(player) {
+                 const base = posMap[player.position] || posMap['PG'];
+                 const pos  = { x: 800 - base.x, y: base.y };
+            %>
+              <circle cx="<%= pos.x %>" cy="<%= pos.y %>" r="28"
+                fill="rgba(100,150,255,0.07)" stroke="rgba(100,150,255,0.2)"/>
+              <circle cx="<%= pos.x %>" cy="<%= pos.y %>" r="24"
+                fill="none" stroke="#6496ff" stroke-width="2.5"/>
+              <image
+                href="<%= player.image %>"
+                x="<%= pos.x - 22 %>" y="<%= pos.y - 22 %>"
+                width="44" height="44"
+                clip-path="url(#clip-b-<%= player.id %>)"
+                preserveAspectRatio="xMidYMid slice"/>
+              <rect x="<%= pos.x - 16 %>" y="<%= pos.y + 26 %>"
+                width="32" height="15" rx="4" fill="#6496ff"/>
+              <text x="<%= pos.x %>" y="<%= pos.y + 37 %>"
+                text-anchor="middle" font-size="9" fill="white">
+                <%= player.position %>
+              </text>
+            <% }) %>
 
-        </svg>
+          </svg>
+        </div>
       </div>
+
+      <!-- CLOCK -->
+      <div class="match-clock">
+        <span id="clock-time">10:00</span>
+        <span class="clock-label">Q1</span>
+      </div>
+
+      <!-- PLAY BY PLAY -->
+      <div class="playby-container">
+        <div class="panel-header">
+          <span class="panel-label">Play-by-Play</span>
+        </div>
+        <div class="events-feed">
+          <% if (typeof events !== 'undefined' && events.length > 0) { %>
+            <% events.forEach(function(ev) { %>
+              <div class="event-item event--<%= ev.type %>">
+                <span class="event-time"><%= ev.time %></span>
+                <span class="event-icon">
+                  <% if (ev.type === 'score') { %>🏀
+                  <% } else if (ev.type === 'foul') { %>⚠️
+                  <% } else if (ev.type === 'block') { %>🛡️
+                  <% } else { %>📋<% } %>
+                </span>
+                <span class="event-text"><%= ev.text %></span>
+              </div>
+            <% }) %>
+          <% } %>
+        </div>
+      </div>
+
     </div>
 
-    <!-- RIGHT: EVENTS + ROSTER -->
-    <div class="events-panel">
-
+    <!-- RIGHT TEAM -->
+    <div class="team-panel right-team">
       <div class="panel-header">
-        <span class="panel-label">Play-by-Play</span>
-        <% if (match.status === 'LIVE') { %>
-          <span class="panel-live-badge">● LIVE</span>
-        <% } %>
+        <span class="panel-label">Roster</span>
+        <span class="panel-tag"><%= match.teamb %></span>
       </div>
-
-      <div class="events-feed">
-        <div class="event-item event--score">
-          <span class="event-time">02:14</span>
-          <span class="event-icon">🏀</span>
-          <span class="event-text">Rahul scored <strong>2 points</strong></span>
-        </div>
-        <div class="event-item event--foul">
-          <span class="event-time">01:59</span>
-          <span class="event-icon">⚠️</span>
-          <span class="event-text">Aman committed a <strong>foul</strong></span>
-        </div>
+      <div class="roster-list">
+  <% teamBPlayers.forEach((player, i) => { %>
+    <div class="roster-card" 
+         data-points="<%= player.points || 0 %>"
+         data-fouls="<%= player.fouls || 0 %>"
+         data-assists="<%= player.assists || 0 %>"
+         data-rebounds="<%= player.rebounds || 0 %>">
+      <div class="roster-num">#<%= i + 1 %></div>
+      <img class="roster-img" src="<%= player.image %>" alt="<%= player.name %>" />
+      <div class="roster-info">
+        <div class="roster-name"><%= player.name %></div>
+        <div class="roster-pos"><%= player.position %></div>
       </div>
-
-    
-      <!-- ROSTER -->
-<div class="roster-panel">
-  <div class="panel-header">
-    <span class="panel-label">Roster</span>
-    <span class="panel-tag"><%= match.teama %></span>
-  </div>
-  <div class="roster-list">
-    <% if (players.length === 0) { %>
-      <div class="empty-state">No players found for this team.</div>
-    <% } else { %>
-      <% players.forEach((player, i) => { %>
-       <div class="roster-card" style="animation-delay: <%= i * 0.06 %>s">
-          <div class="roster-num">#<%= i + 1 %></div>
-          <img class="roster-img" src="<%= player.image %>" alt="<%= player.name %>" />
-          <div class="roster-info">
-            <div class="roster-name"><%= player.name %></div>
-            <div class="roster-pos"><%= player.position || 'N/A' %></div>
-          </div>
-          <div class="roster-role"><%= player.role || '' %></div>
-        </div>
-      <% }) %>
-    <% } %>
-  </div>
+      <div class="player-tooltip">
+        <div class="tooltip-row"><span>PTS</span><span><%= player.points || 0 %></span></div>
+        <div class="tooltip-row"><span>AST</span><span><%= player.assists || 0 %></span></div>
+        <div class="tooltip-row"><span>REB</span><span><%= player.rebounds || 0 %></span></div>
+        <div class="tooltip-row foul-row"><span>FOULS</span><span><%= player.fouls || 0 %></span></div>
+      </div>
+    </div>
+  <% }) %>
 </div>
     </div>
+
   </div>
 </div>
+
+
 <script src="/socket.io/socket.io.js"></script>
 <script>
-  const socket = io();
+  const socket  = io();
   const matchId = "<%= matchId %>";
 
+  // ── Score updates ──
   socket.on(`match_${matchId}`, (data) => {
     document.querySelectorAll(".sb-score")[0].textContent = data.scorea;
     document.querySelectorAll(".sb-score")[1].textContent = data.scoreb;
   });
 
+  // ── Live play-by-play events ──
   socket.on(`event_${matchId}`, (data) => {
     const feed  = document.querySelector(".events-feed");
     const icons = { score: "🏀", foul: "⚠️", block: "🛡️" };
@@ -261,6 +313,59 @@
       <span class="event-text">${data.text}</span>
     `;
     feed.prepend(div);
+  });
+
+  // ── Clock — ONLY controlled by admin via socket ──
+  // No auto-start. Clock only moves when server sends clock events.
+  let clockSeconds = 10 * 60;
+  let clockInterval = null;
+
+  function formatClock(secs) {
+    const m = Math.floor(secs / 60).toString().padStart(2, "0");
+    const s = (secs % 60).toString().padStart(2, "0");
+    return `${m}:${s}`;
+  }
+
+  // Admin sends { time: "09:45", quarter: "Q1", running: true/false }
+  socket.on(`clock_${matchId}`, (data) => {
+    const parts   = data.time.split(":").map(Number);
+    clockSeconds  = (parts[0] * 60) + (parts[1] || 0);
+
+    document.getElementById("clock-time").textContent = data.time;
+    document.querySelector(".clock-label").textContent = data.quarter;
+
+    // Start or stop local tick based on admin's running flag
+    if (data.running) {
+      clearInterval(clockInterval);
+      clockInterval = setInterval(() => {
+        if (clockSeconds > 0) {
+          clockSeconds--;
+          document.getElementById("clock-time").textContent = formatClock(clockSeconds);
+        } else {
+          clearInterval(clockInterval);
+        }
+      }, 1000);
+    } else {
+      clearInterval(clockInterval);
+    }
+  });
+
+  // ── Player stat updates via socket (admin scores a basket/foul etc.) ──
+  socket.on(`player_stats_${matchId}`, (data) => {
+    // data = { playerId, points, fouls, assists, rebounds }
+    const card = document.querySelector(`.roster-card[data-player-id="${data.playerId}"]`);
+    if (!card) return;
+
+    card.dataset.points   = data.points;
+    card.dataset.fouls    = data.fouls;
+    card.dataset.assists  = data.assists;
+    card.dataset.rebounds = data.rebounds;
+
+    const rows = card.querySelectorAll(".tooltip-row span:last-child");
+    if (rows[0]) rows[0].textContent = data.points;
+    if (rows[1]) rows[1].textContent = data.assists;
+    if (rows[2]) rows[2].textContent = data.rebounds;
+    if (rows[3]) rows[3].textContent = data.fouls;
   });
 </script>
 </body>
